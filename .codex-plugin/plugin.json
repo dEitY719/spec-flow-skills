@@ -1,0 +1,42 @@
+{
+  "name": "spec-flow",
+  "version": "0.1.0",
+  "description": "Run the PRD -> TRD -> issue planning pipeline: decompose a product spec into per-component TRDs, TRDs into Epic/Feature/Task issues, and reverse-engineer finished work back into specs and prompts.",
+  "author": {
+    "name": "dEitY719",
+    "url": "https://github.com/dEitY719"
+  },
+  "homepage": "https://github.com/dEitY719/spec-flow-skills",
+  "repository": "https://github.com/dEitY719/spec-flow-skills",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "plugin",
+    "marketplace",
+    "spec-flow",
+    "prd",
+    "trd",
+    "issue-planning"
+  ],
+  "skills": "./skills/",
+  "hooks": {},
+  "interface": {
+    "displayName": "Spec Flow",
+    "shortDescription": "Turn a product spec into technical designs, then into issues",
+    "longDescription": "Spec Flow bundles the five skills that carry a product spec down to filed work and back again: prd-to-trd splits one PRD into per-component TRD scaffolds, trd-to-issues decomposes a filled-in TRD into Epic/Feature/Task and bulk-creates GitHub milestones and issues (only with --apply; the default is a reviewable dry-run plan), pr-to-ssot-issue reverse-engineers an exception PR that skipped PRD/TRD into an SSOT tracking issue, reverse-engineering-analysis turns an existing feature into a copy-pasteable AI implementation prompt, and claude-to-codex rewrites a Claude-authored phase document into an imperative doc a Codex run can execute from alone.",
+    "developerName": "dEitY719",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Decompose this PRD into per-component TRDs.",
+      "Turn this TRD into milestones and issues."
+    ],
+    "websiteURL": "https://github.com/dEitY719/spec-flow-skills",
+    "brandColor": "#2563EB",
+    "screenshots": []
+  }
+}

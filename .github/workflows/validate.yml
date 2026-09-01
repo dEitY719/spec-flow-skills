@@ -1,0 +1,33 @@
+name: validate
+
+# Validation is defined once, in `harness-skills`, and called from all fifteen
+# split-out skill repos (dotfiles #1410 D-10). Do not re-inline the checks here:
+# a copy is a fifteen-way drift risk, which is exactly what NF-2 forbids.
+#
+# To change what is checked, edit
+# dEitY719/harness-skills/.github/workflows/skill-check.yml.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    uses: dEitY719/harness-skills/.github/workflows/skill-check.yml@main
+    with:
+      plugin-name: spec-flow
+      # Two files carry emoji as genuine subject matter, not decoration:
+      # metrics-footer.md is the ai-metrics footer template that
+      # spec-flow:pr-to-ssot-issue emits verbatim (upstream dotfiles #317 F-2 /
+      # PR #320 sanction exactly these glyphs), and decomposition-rules.md
+      # quotes GitHub priority label names as they appear on the board. Exact
+      # file paths only — do not widen this to whole directories. See
+      # CLAUDE.md -> "Emojis".
+      allow-emoji-paths: |
+        skills/pr-to-ssot-issue/references/metrics-footer.md
+        skills/trd-to-issues/references/decomposition-rules.md

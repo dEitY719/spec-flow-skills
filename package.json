@@ -1,0 +1,21 @@
+{
+  "name": "spec-flow-skills",
+  "version": "0.1.0",
+  "description": "PRD to TRD to GitHub issues — spec decomposition and reverse-engineering skills",
+  "type": "module",
+  "main": ".opencode/plugins/spec-flow.js",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dEitY719/spec-flow-skills.git"
+  },
+  "keywords": [
+    "skills",
+    "plugin",
+    "marketplace",
+    "spec-flow",
+    "prd",
+    "trd",
+    "issue-planning"
+  ]
+}

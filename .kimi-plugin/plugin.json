@@ -1,0 +1,34 @@
+{
+  "name": "spec-flow",
+  "version": "0.1.0",
+  "description": "PRD to TRD to GitHub issues -- spec decomposition, bulk issue registration, and reverse-engineering finished work into specs.",
+  "author": {
+    "name": "dEitY719",
+    "url": "https://github.com/dEitY719"
+  },
+  "homepage": "https://github.com/dEitY719/spec-flow-skills",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "plugin",
+    "marketplace",
+    "spec-flow",
+    "prd",
+    "trd",
+    "issue-planning"
+  ],
+  "skills": "./skills/",
+  "skillInstructions": "Kimi Code tool mapping for the spec-flow skills.\n\nThe authoritative mapping is owned by the sibling repo dEitY719/harness-skills at `references/kimi-tools.md` (dotfiles #1410 F-5). Read it there when a skill names a tool you do not recognise; this repo deliberately keeps no copy. Summary:\n\n- Read / Write / Edit / Bash / Grep / Glob keep their exposed Kimi names. Search contents with `Grep`; match paths with `Glob`.\n- `TodoWrite` -> Kimi Code's `TodoList` tool.\n- \"Dispatch a subagent\" -> `Agent` with `subagent_type: \"explore\"` (read-only) or \"coder\". Never pass `general-purpose`. Only `spec-flow:pr-to-ssot-issue` dispatches one, for its Step 3 gap analysis.\n- None of these five skills asks the user a question mid-run. They are written for a non-interactive harness: the review surface is the dry-run plan file, not a prompt. Do not add an `AskUserQuestion` step -- a blocking `read` would hang the run.\n- Two skills shell out to the GitHub CLI through `Bash`: `spec-flow:trd-to-issues` (`gh api` for milestones, `gh issue create`/`edit`, `gh label list`) and `spec-flow:pr-to-ssot-issue` (`gh pr view`/`diff` read-only, `gh issue create`, optional `gh issue comment` backlink). `gh` must be installed and authenticated, and the target repo is resolved from the git remote -- never guessed.\n- `spec-flow:trd-to-issues` writes to GitHub only under `--apply`. The default `--dry-run` writes a plan file and stops. Do not add `--apply` on the user's behalf.\n- `spec-flow:pr-to-ssot-issue` treats the source PR as read-only: no `gh pr edit`, `gh pr comment`, or `gh pr review`. It creates exactly one issue plus an optional backlink comment on the parent issue.\n- The other three write local files inside the current repo: `spec-flow:prd-to-trd` -> `<prd-dir>/trd/`, `spec-flow:claude-to-codex` -> `docs/ai/phases/codex/`, `spec-flow:reverse-engineering-analysis` -> `<output-dir>/analysis.md` (default `docs/`). None of them pushes, merges, or force-writes over an existing file without `--force`.",
+  "interface": {
+    "displayName": "Spec Flow",
+    "shortDescription": "Turn a product spec into technical designs, then into issues",
+    "longDescription": "Spec Flow bundles the five skills of the PRD -> TRD -> issue pipeline: prd-to-trd, trd-to-issues, pr-to-ssot-issue, reverse-engineering-analysis, and claude-to-codex.",
+    "developerName": "dEitY719",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/dEitY719/spec-flow-skills"
+  }
+}
