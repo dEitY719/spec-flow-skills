@@ -18,6 +18,17 @@ you ask for it explicitly.
 | `reverse-engineering-analysis` | `/spec-flow:reverse-engineering-analysis "<feature or file path>" [output-dir]` | Traces how one existing feature actually works — libraries, data flow, file map — and writes `analysis.md` whose most important section is a self-contained AI implementation prompt you can paste into any assistant to rebuild it elsewhere. |
 | `claude-to-codex` | `/spec-flow:claude-to-codex` (names a phase doc plus its references) | Rewrites a Claude-authored phase document into imperative Codex instructions under `docs/ai/phases/codex/`, splitting into numbered slices only when a documented trigger fires. The original is never edited. |
 
+### Visual guides and worked examples (GitHub Pages)
+
+- `prd-to-trd` — [visual guide](https://deity719.github.io/spec-flow-skills/skill-guides/prd-to-trd.html) · [usage example](https://deity719.github.io/spec-flow-skills/skill-output/prd-to-trd-usage.html) (PRD to TRD scaffolds)
+- `trd-to-issues` — [visual guide](https://deity719.github.io/spec-flow-skills/skill-guides/trd-to-issues.html) · [usage example](https://deity719.github.io/spec-flow-skills/skill-output/trd-to-issues-usage.html) (TRD to milestone and issue plan)
+- `pr-to-ssot-issue` — [visual guide](https://deity719.github.io/spec-flow-skills/skill-guides/pr-to-ssot-issue.html) · [usage example](https://deity719.github.io/spec-flow-skills/skill-output/pr-to-ssot-issue-usage.html) (exception PR to SSOT tracking issue)
+- `reverse-engineering-analysis` — [visual guide](https://deity719.github.io/spec-flow-skills/skill-guides/reverse-engineering-analysis.html) · [usage example](https://deity719.github.io/spec-flow-skills/skill-output/reverse-engineering-analysis-usage.html) (feature to reusable AI prompt)
+- `claude-to-codex` — [visual guide](https://deity719.github.io/spec-flow-skills/skill-guides/claude-to-codex.html) · [usage example](https://deity719.github.io/spec-flow-skills/skill-output/claude-to-codex-usage.html) (phase doc to Codex instructions)
+
+Each page is generated from a Markdown source under
+[`docs/skill-guides/`](docs/skill-guides) and [`docs/skill-output/`](docs/skill-output).
+
 ### Picking between them
 
 The discriminator is **which direction along the pipeline you are moving**:

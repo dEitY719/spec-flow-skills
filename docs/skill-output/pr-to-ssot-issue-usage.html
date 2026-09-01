@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ko" class="theme-light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pr-to-ssot-issue 사용 결과 — 실행 불가 기록</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* ===== THEMES (class-based only) ===== */
+  html.theme-dark {
+    --bg: #0A0A0A; --surface: #141414; --surface-hover: #1C1C1C;
+    --surface-sunken: #0F0F0F;
+    --border: rgba(255,255,255,0.09);
+    --border-strong: rgba(255,255,255,0.16);
+    --text: #EDEDED; --text-secondary: #9A9A9A;
+    --accent: #60a5fa; --accent-secondary: #a78bfa;
+    --accent-soft: rgba(96,165,250,0.13);
+    --positive: #34d399; --negative: #fb7185; --warning: #fbbf24;
+    --positive-soft: rgba(52,211,153,0.12);
+    --negative-soft: rgba(251,113,133,0.13);
+    --warning-soft: rgba(251,191,36,0.13);
+    --code-bg: #0F1115; --code-text: #D6DEEB;
+    --term-bg: #0E1013; --term-text: #C9D3E0;
+    --term-prompt: #7dd3fc; --term-err: #fb7185; --term-muted: #7c8798;
+    --shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  html.theme-light {
+    --bg: #FAFAF9; --surface: #FFFFFF; --surface-hover: #F5F5F4;
+    --surface-sunken: #F4F4F3;
+    --border: rgba(0,0,0,0.10);
+    --border-strong: rgba(0,0,0,0.18);
+    --text: #0f172a; --text-secondary: #5b6577;
+    --accent: #2563eb; --accent-secondary: #7c3aed;
+    --accent-soft: rgba(37,99,235,0.09);
+    --positive: #059669; --negative: #e11d48; --warning: #b45309;
+    --positive-soft: rgba(5,150,105,0.10);
+    --negative-soft: rgba(225,29,72,0.09);
+    --warning-soft: rgba(180,83,9,0.12);
+    --code-bg: #1B1F27; --code-text: #E4E9F2;
+    --term-bg: #16191F; --term-text: #DCE3EC;
+    --term-prompt: #7dd3fc; --term-err: #fca5a5; --term-muted: #97a1b0;
+    --shadow: 0 8px 24px rgba(15,23,42,0.10);
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Apple SD Gothic Neo',
+                 'Malgun Gothic', 'Noto Sans KR', 'Nanum Gothic', Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--text);
+    font-size: 16px; line-height: 1.72;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.005em;
+    transition: background 0.25s, color 0.25s;
+    scrollbar-gutter: stable;
+    overflow-wrap: break-word;
+  }
+  h1, h2, h3, h4 { color: var(--text); letter-spacing: -0.025em; line-height: 1.2; text-wrap: balance; }
+  h1 { font-size: clamp(1.9rem, 5vw, 2.85rem); font-weight: 700; }
+  h2 { font-size: clamp(1.45rem, 3.2vw, 1.9rem); font-weight: 650; }
+  h3 { font-size: 1.4rem; font-weight: 600; }
+  h4 { font-size: 1.04rem; font-weight: 650; }
+  p, li, td, th, span, label { font-weight: 400; }
+  a { color: var(--accent); text-underline-offset: 3px; }
+  a:hover { text-decoration-thickness: 2px; }
+  code, kbd, pre, .mono {
+    font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
+                 'DejaVu Sans Mono', 'D2Coding', monospace;
+  }
+  .text-secondary { color: var(--text-secondary); }
+
+  /* ===== LAYOUT ===== */
+  .page { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px) 96px; }
+  .layout { display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: clamp(24px, 4vw, 56px); align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+  /* ===== HEADER ===== */
+  header.hero { padding: clamp(44px, 7vw, 80px) 0 clamp(26px, 4vw, 40px); border-bottom: 1px solid var(--border); margin-bottom: clamp(28px, 4vw, 48px); }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 0.76rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent); background: var(--accent-soft);
+    border: 1px solid var(--border); border-radius: 999px; padding: 5px 13px;
+    margin-bottom: 18px;
+  }
+  .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 9px;
+    font-size: 0.82rem; font-weight: 700; letter-spacing: 0.02em;
+    color: var(--negative); background: var(--negative-soft);
+    border: 1px solid var(--negative); border-radius: 999px;
+    padding: 6px 15px 6px 12px; margin-bottom: 18px; margin-left: 8px;
+  }
+  .status-pill svg { flex: none; }
+  @media (max-width: 560px) { .status-pill { margin-left: 0; } }
+
+  /* the blockquote lead */
+  .lead-quote {
+    margin-top: 24px; max-width: 74ch;
+    background: var(--warning-soft);
+    border: 1px solid var(--border); border-left: 3px solid var(--warning);
+    border-radius: 8px; padding: 18px 22px;
+  }
+  .lead-quote p { font-size: 1.04rem; }
+  .lead-quote p + p { margin-top: 8px; }
+  .lead-quote strong { font-weight: 700; }
+  .lead-quote .warn-em { color: var(--warning); }
+
+  /* ===== FLOW BLOCK ===== */
+  .flow {
+    margin: 26px 0 0; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px 22px; overflow-x: auto;
+  }
+  .flow pre {
+    font-size: 0.94rem; line-height: 1.8; white-space: pre; color: var(--text);
+  }
+  .flow .halt { color: var(--negative); font-weight: 700; }
+
+  /* ===== TOC ===== */
+  .toc { position: sticky; top: 24px; }
+  .toc-title { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-secondary); padding: 0 12px 10px; }
+  .toc ol { list-style: none; }
+  .toc a {
+    display: block; padding: 7px 12px; border-radius: 7px;
+    font-size: 0.9rem; color: var(--text-secondary); text-decoration: none;
+    border-left: 2px solid transparent; transition: color 0.15s, background 0.15s, border-color 0.15s;
+  }
+  .toc a:hover { background: var(--surface-hover); color: var(--text); }
+  .toc a.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+  @media (max-width: 900px) {
+    .toc { position: static; margin-bottom: 32px; }
+    .toc ol { display: flex; flex-wrap: wrap; gap: 6px; }
+    .toc a { border-left: none; border: 1px solid var(--border); }
+    .toc a.active { border-color: var(--accent); }
+  }
+
+  /* ===== SECTIONS ===== */
+  section.doc { scroll-margin-top: 24px; padding-bottom: clamp(38px, 6vw, 60px); }
+  section.doc + section.doc { border-top: 1px solid var(--border); padding-top: clamp(34px, 5vw, 52px); }
+  section.doc > h2 { display: flex; align-items: baseline; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
+  section.doc > h2 .num {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.86rem; font-weight: 600; color: var(--accent);
+    background: var(--accent-soft); border-radius: 6px; padding: 3px 9px;
+    flex: none; letter-spacing: 0;
+  }
+  section.doc p { max-width: 74ch; }
+  section.doc p + p { margin-top: 1em; }
+
+  /* ===== CARD ===== */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 22px 24px;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .card:hover { box-shadow: var(--shadow); border-color: var(--border-strong); }
+  .card > *:last-child { margin-bottom: 0; }
+  .card.tone-neg { border-left: 3px solid var(--negative); }
+  .card.tone-pos { border-left: 3px solid var(--positive); }
+  .card h4 { margin-bottom: 8px; }
+  .card.tone-pos h4 { color: var(--positive); }
+
+  /* ===== CODE ===== */
+  .codeblock { position: relative; margin: 20px 0; }
+  .codeblock pre {
+    background: var(--code-bg); color: var(--code-text);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 20px 22px; overflow-x: auto;
+    font-size: 0.875rem; line-height: 1.72;
+  }
+  .codeblock pre code { color: inherit; background: none; padding: 0; border: none; font-size: inherit; white-space: pre; }
+  .copy-btn {
+    position: absolute; top: 10px; right: 10px;
+    background: rgba(255,255,255,0.07); color: #D6DEEB;
+    border: 1px solid rgba(255,255,255,0.16); border-radius: 6px;
+    font-family: inherit; font-size: 0.74rem; font-weight: 600;
+    padding: 5px 11px; cursor: pointer; opacity: 0; transition: opacity 0.15s, background 0.15s;
+  }
+  .codeblock:hover .copy-btn, .copy-btn:focus-visible { opacity: 1; }
+  .copy-btn:hover { background: rgba(255,255,255,0.16); }
+  p code, li code, td code, .card code, .lead-quote code {
+    background: var(--surface-sunken); border: 1px solid var(--border);
+    border-radius: 5px; padding: 0.1em 0.4em;
+    font-size: 0.875em; color: var(--text); white-space: nowrap;
+  }
+
+  /* ===== TERMINAL TRANSCRIPT ===== */
+  .terminal {
+    margin: 20px 0; border: 1px solid var(--border-strong); border-radius: 10px;
+    overflow: hidden; background: var(--term-bg);
+  }
+  .terminal-bar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px; background: rgba(255,255,255,0.04);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .terminal-bar .lights { display: flex; gap: 6px; }
+  .terminal-bar .lights i { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.18); display: block; }
+  .terminal-bar .cap {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.74rem; letter-spacing: 0.04em; color: var(--term-muted);
+  }
+  .terminal-bar .evidence {
+    margin-left: auto; font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--term-muted); border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 999px; padding: 2px 9px;
+  }
+  .terminal pre {
+    padding: 20px 22px; overflow-x: auto; color: var(--term-text);
+    font-size: 0.86rem; line-height: 1.8; white-space: pre;
+  }
+  .terminal .cmd { color: var(--term-prompt); }
+  .terminal .err { color: var(--term-err); }
+  .terminal .muted { color: var(--term-muted); }
+
+  /* ===== GUIDE LINK ===== */
+  .guide-link {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px 22px; margin-top: 22px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .guide-link:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+  .guide-link svg { color: var(--accent); flex: none; }
+  .guide-link p { max-width: none; }
+
+  /* ===== MENU ===== */
+  .viz-menu { position: fixed; top: 16px; right: 16px; z-index: 9999; }
+  .viz-menu-toggle {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: var(--surface); border: 1px solid var(--border-strong);
+    color: var(--text); cursor: pointer; display: flex;
+    align-items: center; justify-content: center;
+    box-shadow: var(--shadow); transition: background 0.2s;
+  }
+  .viz-menu-toggle:hover { background: var(--surface-hover); }
+  .viz-menu-dropdown {
+    position: absolute; top: 52px; right: 0; min-width: 196px;
+    background: var(--surface); border: 1px solid var(--border-strong);
+    border-radius: 12px; padding: 8px; box-shadow: var(--shadow);
+    opacity: 0; visibility: hidden; transform: translateY(-8px);
+    transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
+  }
+  .viz-menu-dropdown.open { opacity: 1; visibility: visible; transform: translateY(0); }
+  .viz-menu-dropdown button {
+    width: 100%; padding: 10px 12px; border: none; border-radius: 8px;
+    background: transparent; color: var(--text); font-size: 0.9rem;
+    font-family: inherit; cursor: pointer; text-align: left;
+    display: flex; align-items: center; gap: 10px; transition: background 0.15s;
+  }
+  .viz-menu-dropdown button:hover { background: var(--surface-hover); }
+  .viz-menu-dropdown button svg { flex: none; color: var(--text-secondary); }
+
+  /* ===== FOOTER ===== */
+  footer.doc-footer {
+    border-top: 1px solid var(--border); margin-top: 24px; padding-top: 24px;
+    font-size: 0.86rem; color: var(--text-secondary);
+    display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+
+  /* ===== A11Y / MOTION ===== */
+  .skip-to-content {
+    position: absolute; top: -60px; left: 8px; background: var(--accent);
+    color: #fff; padding: 9px 14px; text-decoration: none;
+    border-radius: 6px; z-index: 10000; transition: top 0.2s;
+  }
+  .skip-to-content:focus { top: 8px; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .animate { animation: fadeInUp 0.55s ease-out both; }
+  .animate.delay-1 { animation-delay: 0.07s; }
+  .animate.delay-2 { animation-delay: 0.14s; }
+  .animate.delay-3 { animation-delay: 0.21s; }
+  .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.55s ease, transform 0.55s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .reveal { opacity: 1; transform: none; }
+  }
+
+  /* ===== PRINT ===== */
+  @media print {
+    body { background: #fff !important; color: #000 !important; font-size: 11pt; }
+    .viz-menu, .toc, .copy-btn, .skip-to-content { display: none !important; }
+    .layout { display: block; }
+    .reveal { opacity: 1 !important; transform: none !important; }
+    .card, .terminal, .codeblock, .flow, section.doc { break-inside: avoid; box-shadow: none !important; }
+    .codeblock pre { background: #f4f4f4 !important; color: #111 !important; border: 1px solid #ccc; }
+    .terminal { background: #f4f4f4 !important; }
+    .terminal pre { color: #111 !important; }
+    .terminal .cmd { color: #0b4a6f !important; }
+    .terminal .err { color: #9f1239 !important; }
+    .terminal .muted { color: #555 !important; }
+    a { color: #000; }
+    * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  }
+  @page { margin: 0.8in; }
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-to-content">본문으로 건너뛰기</a>
+
+<div class="viz-menu">
+  <button class="viz-menu-toggle" onclick="toggleMenu()" aria-label="문서 메뉴 열기" aria-haspopup="true" aria-expanded="false" id="vizMenuToggle">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+      <line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/>
+    </svg>
+  </button>
+  <div class="viz-menu-dropdown" id="vizMenuDropdown" role="menu">
+    <button onclick="cycleTheme()" role="menuitem" aria-label="라이트/다크 테마 전환">
+      <span id="themeIcon" aria-hidden="true"></span><span id="themeLabel">Dark</span>
+    </button>
+    <button onclick="window.print()" role="menuitem" aria-label="인쇄 또는 PDF 저장">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+        <path d="M6 8V3h8v5"/><rect x="3" y="8" width="14" height="6" rx="1"/><path d="M6 14h8v4H6z"/>
+      </svg><span>Print / PDF</span>
+    </button>
+  </div>
+</div>
+
+<div class="page">
+  <header class="hero">
+    <span class="eyebrow"><span class="dot"></span>spec-flow skill output</span>
+    <span class="status-pill" role="status">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="10" cy="10" r="8"/><path d="M6 6l8 8"/>
+      </svg>실행 불가
+    </span>
+    <h1 class="animate">pr-to-ssot-issue 사용 결과</h1>
+    <blockquote class="lead-quote animate delay-1">
+      <p><strong>한 줄 요약</strong> — 예외 PR 번호를 받아 8-섹션 SSOT 추적 이슈를 생성합니다.</p>
+      <p><strong class="warn-em">이 문서는 실행 기록이 아닙니다</strong> — 대상이 될 PR 이 없어 실행하지 못했습니다.</p>
+    </blockquote>
+    <div class="flow animate delay-2" role="img" aria-label="흐름도: PR 번호를 /spec-flow:pr-to-ssot-issue 에 넣으면 SSOT 이슈 1건이 나오지만, 이번에는 실행 불가">
+<pre>PR#  ──▶  /spec-flow:pr-to-ssot-issue  ──▶  SSOT 이슈 1건   <span class="halt">[실행 불가]</span></pre>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc animate delay-3" aria-label="목차">
+      <div class="toc-title">목차</div>
+      <ol>
+        <li><a href="#cmd">1. 실행하려던 명령</a></li>
+        <li><a href="#input">2. 입력 — 확보하지 못함</a></li>
+        <li><a href="#result">3. 결과 — 없음</a></li>
+      </ol>
+    </nav>
+
+    <main id="main-content">
+
+      <section class="doc" id="cmd" data-reveal>
+        <h2><span class="num">01</span>실행하려던 명령</h2>
+        <div class="codeblock">
+          <button class="copy-btn" onclick="copyCode(this)" aria-label="명령 복사">Copy</button>
+          <pre><code>/spec-flow:pr-to-ssot-issue &lt;PR#&gt; --reason "&lt;사유&gt;" [--parent &lt;N&gt;] [--dry-run]</code></pre>
+        </div>
+      </section>
+
+      <section class="doc" id="input" data-reveal>
+        <h2><span class="num">02</span>입력 — 확보하지 못함</h2>
+        <p>입력은 대상 repo 에 실재하는 PR 번호다. 스킬은 git remote 로 대상 repo 를 확정한 뒤 <code>gh pr view &lt;PR#&gt;</code> 로 상태가 <code>OPEN</code>/<code>MERGED</code> 인지 확인한다. PR 이 없으면 어떤 인자로도 진행할 수 없다.</p>
+
+        <div class="terminal">
+          <div class="terminal-bar">
+            <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="cap">shell</span>
+            <span class="evidence">captured evidence</span>
+          </div>
+<pre><span class="cmd">$ git remote get-url origin</span>
+git@github.com:dEitY719/spec-flow-skills.git
+
+<span class="cmd">$ gh pr list --repo dEitY719/spec-flow-skills --state all --limit 100</span>
+<span class="muted">(빈 출력, exit 0)</span>
+
+<span class="cmd">$ gh pr view 1 --repo dEitY719/spec-flow-skills --json number,state</span>
+<span class="err">GraphQL: Could not resolve to a PullRequest with the number of 1. (repository.pullRequest)</span>
+<span class="muted">(exit 1)</span></pre>
+        </div>
+
+        <p>커밋 1건으로 시작된 신규 repo 라 PR 이 한 건도 없다.</p>
+      </section>
+
+      <section class="doc" id="result" data-reveal>
+        <h2><span class="num">03</span>결과 — 없음</h2>
+        <p>산출물이 없다. <code>--dry-run</code> 조차 실행하지 않았다. <code>--dry-run</code> 은 GitHub <em>쓰기</em> 만 생략할 뿐 PR 조회는 그대로 수행하므로 Step 1 전제 검증에서 멈춘다.</p>
+
+        <div class="card tone-neg" style="margin-top:20px;">
+          <p>이 스킬은 이런 상황에서 추측으로 진행하지 않고 닫히도록 설계돼 있다 — remote 를 모르면 조용히 폴백하지 않고, 갭이 비면 빈 껍데기 이슈를 만들지 않고 exit 4 로 거부한다. 여기서 실행 결과를 지어내 적는 것은 그 설계 의도와 정반대다.</p>
+        </div>
+
+        <div class="card tone-pos" style="margin-top:18px;">
+          <h4>실행 가능해지는 조건</h4>
+          <p>이 repo 에 PR 이 하나 머지되거나, 다른 repo 체크아웃에서 그 repo 의 예외 PR 을 대상으로 호출하면 된다. 스킬의 결함이 아니라 이 repo 에 아직 이력이 없어서 생긴 공백이다.</p>
+        </div>
+
+        <div class="guide-link">
+          <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3.5 4.5h5a2 2 0 0 1 2 2v9a1.6 1.6 0 0 0-1.6-1.6H3.5z"/>
+            <path d="M16.5 4.5h-5a2 2 0 0 0-2 2v9a1.6 1.6 0 0 1 1.6-1.6h5.4z"/>
+          </svg>
+          <p>사용법과 제약은 <a href="../skill-guides/pr-to-ssot-issue.html">visual guide</a> 를 참고한다.</p>
+        </div>
+      </section>
+
+      <footer class="doc-footer">
+        <span>spec-flow &middot; pr-to-ssot-issue &middot; usage</span>
+        <span>NOT EXECUTED — no PR existed in the target repo</span>
+      </footer>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  var SUN_ICON = '<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="10" r="3.6"/><path d="M10 1.5v2M10 16.5v2M1.5 10h2M16.5 10h2M4 4l1.4 1.4M14.6 14.6L16 16M16 4l-1.4 1.4M5.4 14.6L4 16"/></svg>';
+  var MOON_ICON = '<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.5 12.2A7 7 0 0 1 7.8 3.5a7 7 0 1 0 8.7 8.7z"/></svg>';
+
+  function toggleMenu() {
+    var dd = document.getElementById('vizMenuDropdown');
+    var tg = document.getElementById('vizMenuToggle');
+    if (!dd) return;
+    var open = dd.classList.toggle('open');
+    if (tg) tg.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  function closeMenu() {
+    var dd = document.getElementById('vizMenuDropdown');
+    var tg = document.getElementById('vizMenuToggle');
+    if (dd) dd.classList.remove('open');
+    if (tg) tg.setAttribute('aria-expanded', 'false');
+  }
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.viz-menu')) closeMenu();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeMenu();
+  });
+
+  var savedTheme = null;
+  try { savedTheme = localStorage.getItem('viz-theme'); } catch (e) {}
+  var currentTheme = savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  function applyTheme(t) {
+    document.documentElement.className = 'theme-' + t;
+    var icon = document.getElementById('themeIcon');
+    var label = document.getElementById('themeLabel');
+    if (icon) icon.innerHTML = t === 'dark' ? SUN_ICON : MOON_ICON;
+    if (label) label.textContent = t === 'dark' ? 'Light' : 'Dark';
+    try { localStorage.setItem('viz-theme', t); } catch (e) {}
+    currentTheme = t;
+  }
+  function cycleTheme() { applyTheme(currentTheme === 'dark' ? 'light' : 'dark'); }
+  applyTheme(currentTheme);
+
+  function copyCode(btn) {
+    var pre = btn.parentElement.querySelector('pre');
+    if (!pre) return;
+    var text = pre.innerText;
+    var done = function () {
+      var old = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(function () { btn.textContent = old; }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () {});
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+  }
+
+  document.querySelectorAll('[data-reveal]').forEach(function (el) { el.classList.add('reveal'); });
+  var revealObserver = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) { e.target.classList.add('visible'); revealObserver.unobserve(e.target); }
+    });
+  }, { threshold: 0.06, rootMargin: '0px 0px -8% 0px' });
+  document.querySelectorAll('.reveal').forEach(function (el) { revealObserver.observe(el); });
+
+  var tocLinks = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+  var sections = tocLinks.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+  var spy = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      var i = sections.indexOf(e.target);
+      if (i < 0) return;
+      tocLinks.forEach(function (a) { a.classList.remove('active'); });
+      tocLinks[i].classList.add('active');
+    });
+  }, { rootMargin: '-10% 0px -70% 0px', threshold: 0 });
+  sections.forEach(function (s) { if (s) spy.observe(s); });
+</script>
+</body>
+</html>

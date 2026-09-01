@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ko" class="theme-light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>reverse-engineering-analysis — spec-flow Skill Guide</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ===== THEMES (class-based only) ===== */
+    html.theme-light {
+      --bg: #FAFAF9; --surface: #FFFFFF; --surface-hover: #F5F5F4;
+      --border: rgba(15,23,42,0.10);
+      --text: #0f172a; --text-secondary: #64748b;
+      --accent: #2563eb; --accent-secondary: #7c3aed;
+      --positive: #059669; --negative: #e11d48; --warning: #b45309;
+      --code-bg: #F4F4F5; --code-text: #1f2937;
+      --table-head: #F5F5F4;
+      --shadow: 0 1px 2px rgba(15,23,42,0.04), 0 8px 24px rgba(15,23,42,0.06);
+    }
+    html.theme-dark {
+      --bg: #0A0A0A; --surface: #141414; --surface-hover: #1C1C1C;
+      --border: rgba(255,255,255,0.10);
+      --text: #EDEDED; --text-secondary: #9aa0a6;
+      --accent: #60a5fa; --accent-secondary: #a78bfa;
+      --positive: #10b981; --negative: #f43f5e; --warning: #f59e0b;
+      --code-bg: #101014; --code-text: #E4E4E7;
+      --table-head: #1A1A1A;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
+    }
+
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Pretendard',
+                   'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', Roboto,
+                   'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg); color: var(--text);
+      line-height: 1.75; -webkit-font-smoothing: antialiased;
+      letter-spacing: -0.005em;
+      transition: background 0.25s ease, color 0.25s ease;
+      scrollbar-gutter: stable;
+      word-break: keep-all; overflow-wrap: anywhere;
+    }
+    h1, h2, h3 { color: var(--text); letter-spacing: -0.025em; line-height: 1.25; text-wrap: balance; }
+    h1 { font-weight: 750; font-size: clamp(2rem, 5.5vw, 3rem); line-height: 1.12; }
+    h2 { font-weight: 650; font-size: clamp(1.5rem, 3.6vw, 2rem); }
+    h3 { font-weight: 600; font-size: 1.5rem; }
+    p, li, td, th, span, label, figcaption { font-weight: 400; font-size: 1rem; }
+    a { color: var(--accent); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+    a:hover { border-bottom-color: var(--accent); }
+    a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+    strong { font-weight: 650; }
+
+    /* ===== LAYOUT ===== */
+    .wrap { max-width: 900px; margin: 0 auto; padding: 0 24px 96px; }
+    header.page-head { padding: 72px 0 40px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--text-secondary);
+      border: 1px solid var(--border); background: var(--surface);
+      padding: 6px 12px; border-radius: 999px; margin-bottom: 20px;
+    }
+    .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+    header.page-head h1 { font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace; font-weight: 700; }
+    .lede { margin-top: 18px; color: var(--text-secondary); font-size: 1.0625rem; max-width: 62ch; }
+
+    section { padding: 40px 0 8px; border-top: 1px solid var(--border); }
+    section:first-of-type { border-top: none; }
+    section > h2 { margin-bottom: 8px; }
+    section > h2 + .sub { color: var(--text-secondary); margin-bottom: 20px; }
+    section > * + * { margin-top: 16px; }
+    section h3 { margin-top: 28px; }
+
+    ul, ol { padding-left: 1.35em; }
+    li + li { margin-top: 10px; }
+    li::marker { color: var(--text-secondary); }
+
+    /* ===== CARD ===== */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 22px 24px;
+      transition: box-shadow 0.2s ease, background 0.25s ease;
+    }
+    .card:hover { box-shadow: var(--shadow); }
+    .card > * + * { margin-top: 12px; }
+
+    .callout { border-left: 3px solid var(--accent); }
+    .callout.warn { border-left-color: var(--warning); }
+    .callout.ok { border-left-color: var(--positive); }
+    .callout .label {
+      display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-secondary); margin-bottom: 6px;
+    }
+
+    /* ===== CODE ===== */
+    code {
+      font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+      font-size: 0.9em; background: var(--code-bg); color: var(--code-text);
+      padding: 0.15em 0.4em; border-radius: 5px; border: 1px solid var(--border);
+      word-break: break-all;
+    }
+    pre {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px 18px; overflow-x: auto;
+      line-height: 1.6; -webkit-overflow-scrolling: touch;
+    }
+    pre code {
+      background: none; border: none; padding: 0; font-size: 0.875rem;
+      color: var(--code-text); white-space: pre; word-break: normal;
+    }
+
+    /* ===== TABLE ===== */
+    .table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+    table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: 0.9375rem; }
+    thead th {
+      background: var(--table-head); text-align: left; font-weight: 650;
+      font-size: 0.8125rem; letter-spacing: 0.04em; text-transform: uppercase;
+      color: var(--text-secondary); padding: 12px 16px;
+      border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    tbody td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: var(--surface-hover); }
+    td.center { text-align: center; }
+
+    /* ===== STEPS ===== */
+    ol.steps { list-style: none; padding-left: 0; counter-reset: step; }
+    ol.steps > li {
+      counter-increment: step; position: relative;
+      padding-left: 46px; min-height: 32px;
+    }
+    ol.steps > li + li { margin-top: 16px; }
+    ol.steps > li::before {
+      content: counter(step); position: absolute; left: 0; top: 2px;
+      width: 30px; height: 30px; border-radius: 9px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--accent); font-weight: 700; font-size: 0.875rem;
+      display: flex; align-items: center; justify-content: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .split { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+    @media (max-width: 640px) { .split { grid-template-columns: 1fr; } }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    .animate { animation: fadeInUp 0.55s ease-out both; }
+    .animate.delay-1 { animation-delay: 0.06s; }
+    .animate.delay-2 { animation-delay: 0.12s; }
+    .animate.delay-3 { animation-delay: 0.18s; }
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.5s ease, transform 0.5s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+
+    /* ===== MENU ===== */
+    .viz-menu { position: fixed; top: 16px; right: 16px; z-index: 9999; }
+    .viz-menu-toggle {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      box-shadow: var(--shadow); transition: background 0.2s;
+    }
+    .viz-menu-toggle:hover { background: var(--surface-hover); }
+    .viz-menu-dropdown {
+      position: absolute; top: 52px; right: 0; min-width: 190px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 8px; box-shadow: var(--shadow);
+      opacity: 0; visibility: hidden; transform: translateY(-8px);
+      transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
+    }
+    .viz-menu-dropdown.open { opacity: 1; visibility: visible; transform: translateY(0); }
+    .viz-menu-dropdown button {
+      width: 100%; padding: 10px 12px; border: none; border-radius: 8px;
+      background: transparent; color: var(--text); font-size: 0.875rem;
+      font-family: inherit; cursor: pointer; text-align: left;
+      display: flex; align-items: center; gap: 10px; transition: background 0.15s;
+    }
+    .viz-menu-dropdown button:hover { background: var(--surface-hover); }
+    .viz-menu-dropdown svg { flex: none; }
+
+    .skip-to-content {
+      position: absolute; top: -60px; left: 8px; background: var(--accent);
+      color: #fff; padding: 10px 14px; border: none; border-radius: 6px;
+      text-decoration: none; z-index: 10000; transition: top 0.15s;
+    }
+    .skip-to-content:focus { top: 8px; }
+
+    footer.page-foot {
+      border-top: 1px solid var(--border); margin-top: 48px; padding-top: 24px;
+      color: var(--text-secondary); font-size: 0.875rem;
+    }
+
+    /* ===== PRINT ===== */
+    @media print {
+      body { background: #fff !important; color: #000 !important; }
+      .viz-menu, .skip-to-content { display: none !important; }
+      .reveal { opacity: 1 !important; transform: none !important; }
+      .card, pre, .table-scroll { break-inside: avoid; border: 1px solid #ddd; box-shadow: none; }
+      a { color: #000; border-bottom: none; }
+      * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    }
+    @page { margin: 1in; }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-to-content">본문으로 건너뛰기</a>
+
+  <div class="viz-menu">
+    <button class="viz-menu-toggle" onclick="toggleMenu()" aria-label="메뉴 열기" aria-haspopup="true" aria-expanded="false" id="vizMenuToggle">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/>
+      </svg>
+    </button>
+    <div class="viz-menu-dropdown" id="vizMenuDropdown" role="menu">
+      <button onclick="cycleTheme()" role="menuitem" aria-label="테마 전환">
+        <svg id="themeIcon" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+        <span id="themeLabel">Dark</span>
+      </button>
+      <button onclick="window.print()" role="menuitem" aria-label="인쇄 또는 PDF 저장">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 7V2.8h8V7"/><rect x="3" y="7" width="14" height="7" rx="1.5"/><path d="M6 12h8v5.2H6z"/>
+        </svg>
+        <span>Print / PDF</span>
+      </button>
+    </div>
+  </div>
+
+  <main id="main-content" role="main">
+    <div class="wrap">
+
+      <header class="page-head">
+        <span class="eyebrow animate"><span class="dot"></span>spec-flow · skill guide</span>
+        <h1 class="animate delay-1">reverse-engineering-analysis</h1>
+        <p class="lede animate delay-2">
+          기존 기능 하나를 분석해 재사용 가능한 AI 구현 프롬프트를 만들어 내는 스킬의
+          사용 가이드.
+        </p>
+      </header>
+
+      <section data-reveal aria-labelledby="s-summary">
+        <h2 id="s-summary">한 줄 요약</h2>
+        <div class="card callout">
+          <p>
+            기존 기능 하나를 분석해 <code>&lt;output_dir&gt;/analysis.md</code> 를 쓴다. 그 문서에서 가장 중요한
+            부분은 마지막의 <strong>AI Implementation Prompt</strong> — 다른 프로젝트의 AI 어시스턴트에
+            그대로 붙여넣으면 같은 기능을 다시 만들 수 있는 자기완결적 프롬프트다.
+          </p>
+        </div>
+      </section>
+
+      <section data-reveal aria-labelledby="s-output">
+        <h2 id="s-output">무엇을 만드는가</h2>
+        <p><code>analysis.md</code> 파일 1개. 필수 섹션은 다섯이다.</p>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th scope="col">섹션</th><th scope="col">내용</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Overview</td><td>1~2문장 요약</td></tr>
+              <tr><td>Key Libraries</td><td>표 — 라이브러리 / 버전 / 역할</td></tr>
+              <tr><td>How It Works</td><td>데이터 흐름과 핵심 추상화</td></tr>
+              <tr><td>File Map</td><td>소스 파일과 각 파일의 역할</td></tr>
+              <tr><td><strong>AI Implementation Prompt</strong></td><td>복사해 붙여넣는 재구현 프롬프트. 프로젝트 고유 경로가 없어야 한다</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          앞의 네 섹션은 마지막 섹션을 쓰기 위한 근거 수집이다. 분석 문서 자체가 목적이
+          아니라, <strong>기능을 이식 가능한 형태로 만드는 것</strong>이 목적이다.
+        </p>
+      </section>
+
+      <section data-reveal aria-labelledby="s-when">
+        <h2 id="s-when">언제 쓰고 언제 안 쓰는가</h2>
+        <div class="split">
+          <div class="card callout ok">
+            <span class="label">쓴다</span>
+            <p>
+              이 프로젝트에 있는 기능을 다른 프로젝트에서도 쓰고 싶을 때, 또는 남이
+              짜 놓은 기능의 동작 원리를 문서로 남겨야 할 때.
+            </p>
+          </div>
+          <div class="card callout warn">
+            <span class="label">안 쓴다</span>
+            <ul>
+              <li>
+                머지된 PR 을 추적 이슈로 되돌릴 때 → <code>pr-to-ssot-issue</code>. 저쪽은 결과물을 <strong>명세</strong>로
+                되돌리고, 이 스킬은 결과물을 <strong>재구현 프롬프트</strong>로 되돌린다. 방향은 같지만 도착지가
+                다르다.
+              </li>
+              <li>
+                아직 만들지 않은 기능을 설계할 때 → <code>prd-to-trd</code>. 이 스킬은 이미 존재하는 코드만
+                다룬다.
+              </li>
+              <li>코드베이스 전체를 이해하려 할 때. 입력은 기능 <strong>하나</strong>다.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section data-reveal aria-labelledby="s-invoke">
+        <h2 id="s-invoke">호출 형식</h2>
+<pre><code>/spec-flow:reverse-engineering-analysis "&lt;feature or file path&gt;" [output directory]</code></pre>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th scope="col">인자</th><th scope="col">필수</th><th scope="col">기본값</th><th scope="col">설명</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>&lt;feature or file path&gt;</code></td><td class="center">예</td><td class="center">—</td><td>기능 설명(키워드 검색) 또는 명시적 파일 경로</td></tr>
+              <tr><td><code>[output directory]</code></td><td class="center">아니오</td><td><code>docs/</code></td><td><code>analysis.md</code> 를 쓸 디렉터리</td></tr>
+              <tr><td><code>help</code> / <code>-h</code> / <code>--help</code></td><td class="center">—</td><td class="center">—</td><td>도움말만 출력</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>입력 두 형태의 차이:</p>
+        <ul>
+          <li><strong>기능 설명</strong> — <code>"frontend의 graph 기능"</code> 처럼 쓰면 Grep/Glob 으로 관련 파일을 찾아낸다.</li>
+          <li><strong>파일 경로</strong> — <code>.github/workflows/ci.yml</code> 처럼 쓰면 검색 없이 바로 읽는다.</li>
+        </ul>
+<pre><code>/spec-flow:reverse-engineering-analysis "frontend의 graph 기능" docs/feature/frontend-graph/
+/spec-flow:reverse-engineering-analysis .github/workflows/ci.yml docs/feature/workflows-ci/</code></pre>
+      </section>
+
+      <section data-reveal aria-labelledby="s-steps">
+        <h2 id="s-steps">동작 단계</h2>
+        <ol class="steps">
+          <li><strong>Locate</strong> — 키워드로 검색하거나 지정된 파일 경로를 바로 읽는다.</li>
+          <li><strong>Deep Dive</strong> — 큰 파일은 import/export 를 먼저 훑고, 필요할 때만 본문을 읽는다.</li>
+          <li><strong>Extract Libraries</strong> — import 문에서 라이브러리를 모으고, 패키지 매니페스트를 <strong>한 번만</strong> 확인해 버전을 채운다.</li>
+          <li><strong>Explain Mechanism</strong> — 데이터 흐름, 컴포넌트 간 인계 지점, 자명하지 않은 설계 선택.</li>
+          <li><strong>Generate AI Prompt</strong> — 가장 중요한 단계. 자기완결적이고 바로 실행 가능해야 한다.</li>
+        </ol>
+        <p>각 단계는 실패하면 그 자리에서 중단하고 어느 단계가 실패했는지 보고한다.</p>
+      </section>
+
+      <section data-reveal aria-labelledby="s-caveats">
+        <h2 id="s-caveats">주의사항 / 제약</h2>
+        <div class="card">
+          <ul>
+            <li>
+              <strong>프롬프트에 프로젝트 고유 경로를 남기지 않는다.</strong> 절대경로나 이 repo 에만 있는
+              디렉터리 이름이 들어가면 다른 프로젝트에서 쓸 수 없다. 이식성이 품질 기준이다.
+            </li>
+            <li><strong>버전을 지어내지 않는다.</strong> 매니페스트에서 확인되지 않으면 고정되지 않았다고 적는다.</li>
+            <li>
+              대상이 다른 repo 의 리소스를 참조하는 경우(예: 재사용 워크플로), 그 내용을 볼 수
+              없으면 추측하지 말고 "확인 불가"로 명시한다.
+            </li>
+            <li>쓰기 전에 <code>references/output-template.md</code> 의 품질 체크리스트를 통과해야 한다.</li>
+            <li>출력은 <code>&lt;output_dir&gt;/analysis.md</code> 고정이다. 파일명을 바꾸지 않는다.</li>
+            <li>이 스킬은 원본 코드를 수정하지 않는다. 읽고 문서만 쓴다.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section data-reveal aria-labelledby="s-model">
+        <h2 id="s-model">모델 권장</h2>
+        <p>
+          <code>SKILL.md</code> 의 메타데이터는 이 스킬만 <strong>opus</strong> 티어를 권장한다. 나머지 네 스킬은
+          sonnet 이다. 깊은 코드 분석이라 추론 표면이 넓기 때문이다.
+        </p>
+      </section>
+
+      <section data-reveal aria-labelledby="s-next">
+        <h2 id="s-next">이어지는 단계</h2>
+        <div class="card callout">
+          <p>
+            <code>analysis.md</code> 를 열어 AI Implementation Prompt 섹션을 대상 프로젝트의 AI
+            어시스턴트에 붙여넣는다.
+          </p>
+        </div>
+      </section>
+
+      <footer class="page-foot">
+        <p>spec-flow plugin · skill guide · reverse-engineering-analysis</p>
+      </footer>
+
+    </div>
+  </main>
+
+  <script>
+    var menuToggle = document.getElementById('vizMenuToggle');
+    function setMenu(open) {
+      var dropdown = document.getElementById('vizMenuDropdown');
+      if (!dropdown) return;
+      dropdown.classList.toggle('open', open);
+      if (menuToggle) menuToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    function toggleMenu() {
+      var dropdown = document.getElementById('vizMenuDropdown');
+      setMenu(dropdown ? !dropdown.classList.contains('open') : false);
+    }
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.viz-menu')) setMenu(false);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') setMenu(false);
+    });
+
+    // === Theme (class-based, OS detection on first visit) ===
+    var ICON_MOON = '<path d="M16.5 11.4A6.8 6.8 0 0 1 8.6 3.5a6.9 6.9 0 1 0 7.9 7.9Z"/>';
+    var ICON_SUN = '<circle cx="10" cy="10" r="3.6"/><path d="M10 1.6v2M10 16.4v2M3.1 3.1l1.4 1.4M15.5 15.5l1.4 1.4M1.6 10h2M16.4 10h2M3.1 16.9l1.4-1.4M15.5 4.5l1.4-1.4"/>';
+    var savedTheme = null;
+    try { savedTheme = localStorage.getItem('viz-theme'); } catch (e) { savedTheme = null; }
+    var currentTheme = savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    function applyTheme(t) {
+      document.documentElement.className = 'theme-' + t;
+      var icon = document.getElementById('themeIcon');
+      var label = document.getElementById('themeLabel');
+      // Menu offers the theme you can switch TO.
+      if (icon) icon.innerHTML = t === 'dark' ? ICON_SUN : ICON_MOON;
+      if (label) label.textContent = t === 'dark' ? 'Light' : 'Dark';
+      try { localStorage.setItem('viz-theme', t); } catch (e) {}
+      currentTheme = t;
+    }
+    function cycleTheme() { applyTheme(currentTheme === 'dark' ? 'light' : 'dark'); }
+    applyTheme(currentTheme);
+
+    // === Scroll Reveal ===
+    document.querySelectorAll('[data-reveal]').forEach(function (el) { el.classList.add('reveal'); });
+    var revealObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('visible'); revealObserver.unobserve(e.target); }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(function (el) { revealObserver.observe(el); });
+  </script>
+</body>
+</html>

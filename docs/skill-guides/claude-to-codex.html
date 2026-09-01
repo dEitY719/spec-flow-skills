@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ko" class="theme-light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>claude-to-codex — spec-flow skill guide</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ===== THEMES (class-based only) ===== */
+    html.theme-dark {
+      --bg: #0A0A0A; --surface: #141414; --surface-hover: #1C1C1C;
+      --border: rgba(255,255,255,0.09);
+      --text: #EDEDED; --text-secondary: #8b8b8b;
+      --accent: #60a5fa; --accent-secondary: #a78bfa;
+      --positive: #10b981; --negative: #f43f5e; --warning: #f59e0b;
+      --code-bg: #101010; --code-text: #d7d7d7; --inline-bg: rgba(255,255,255,0.07);
+      --rule: rgba(255,255,255,0.09); --shadow: rgba(0,0,0,0.5);
+    }
+    html.theme-light {
+      --bg: #FAFAF9; --surface: #FFFFFF; --surface-hover: #F5F5F4;
+      --border: rgba(0,0,0,0.10);
+      --text: #0f172a; --text-secondary: #64748b;
+      --accent: #2563eb; --accent-secondary: #7c3aed;
+      --positive: #059669; --negative: #e11d48; --warning: #d97706;
+      --code-bg: #F6F6F5; --code-text: #1e293b; --inline-bg: rgba(15,23,42,0.06);
+      --rule: rgba(0,0,0,0.08); --shadow: rgba(15,23,42,0.08);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Pretendard",
+        "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg); color: var(--text);
+      line-height: 1.72; -webkit-font-smoothing: antialiased;
+      letter-spacing: -0.005em;
+      transition: background 0.3s, color 0.3s;
+      scrollbar-gutter: stable;
+      overflow-wrap: anywhere; word-break: keep-all;
+    }
+    code, pre, .mono {
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+        "Liberation Mono", "D2Coding", monospace;
+    }
+
+    /* ===== LAYOUT ===== */
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px 96px; }
+    .layout { display: grid; grid-template-columns: 232px minmax(0,1fr); gap: 48px; align-items: start; }
+    @media (max-width: 920px) { .layout { grid-template-columns: minmax(0,1fr); gap: 0; } }
+
+    /* ===== HEADER ===== */
+    header.page {
+      border-bottom: 1px solid var(--rule);
+      padding: 64px 0 34px; margin-bottom: 44px;
+    }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.09em;
+      text-transform: uppercase; color: var(--text-secondary);
+      margin-bottom: 18px;
+    }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    h1 {
+      font-size: clamp(2.6rem, 7vw, 3.4rem); font-weight: 700;
+      letter-spacing: -0.035em; line-height: 1.06; color: var(--text);
+      text-wrap: balance;
+    }
+    .lede {
+      margin-top: 18px; max-width: 62ch; font-size: 1.075rem;
+      color: var(--text-secondary); line-height: 1.7;
+    }
+    .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+    .badge {
+      font-size: 0.76rem; font-weight: 500; padding: 5px 11px;
+      border: 1px solid var(--border); border-radius: 999px;
+      color: var(--text-secondary); background: var(--surface);
+    }
+    .badge.mono { font-size: 0.72rem; }
+
+    /* ===== TOC ===== */
+    nav.toc { position: sticky; top: 24px; }
+    @media (max-width: 920px) {
+      nav.toc {
+        position: static; margin-bottom: 40px; padding: 18px 20px;
+        border: 1px solid var(--border); border-radius: 10px; background: var(--surface);
+      }
+    }
+    .toc-title {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--text-secondary); margin-bottom: 12px;
+    }
+    .toc ol { list-style: none; counter-reset: toc; }
+    .toc li { counter-increment: toc; }
+    .toc a {
+      display: block; padding: 5px 0 5px 12px; font-size: 0.875rem;
+      color: var(--text-secondary); text-decoration: none;
+      border-left: 2px solid var(--rule); transition: color 0.15s, border-color 0.15s;
+    }
+    .toc a:hover, .toc a:focus-visible { color: var(--accent); border-left-color: var(--accent); }
+
+    /* ===== CONTENT ===== */
+    section.doc { scroll-margin-top: 24px; }
+    section.doc + section.doc { margin-top: 52px; }
+    h2 {
+      font-size: clamp(1.5rem, 3.4vw, 1.85rem); font-weight: 650;
+      letter-spacing: -0.025em; line-height: 1.2; color: var(--text);
+      padding-bottom: 12px; border-bottom: 1px solid var(--rule);
+      margin-bottom: 22px; text-wrap: balance;
+    }
+    h3 { font-size: 1.16rem; font-weight: 600; letter-spacing: -0.02em; margin: 26px 0 10px; }
+    p { max-width: 74ch; margin-bottom: 16px; }
+    p:last-child, ul:last-child, ol:last-child, table:last-child { margin-bottom: 0; }
+    strong { font-weight: 650; color: var(--text); }
+    a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px;
+        text-decoration-thickness: 1px; }
+    a:hover { text-decoration-thickness: 2px; }
+
+    ul, ol { max-width: 74ch; margin: 0 0 16px; padding-left: 1.35em; }
+    li { margin-bottom: 9px; }
+    li::marker { color: var(--text-secondary); }
+    ol.steps { list-style: none; padding-left: 0; counter-reset: step; }
+    ol.steps > li {
+      counter-increment: step; position: relative;
+      padding: 0 0 0 46px; margin-bottom: 18px;
+    }
+    ol.steps > li::before {
+      content: counter(step, decimal-leading-zero);
+      position: absolute; left: 0; top: 2px;
+      width: 32px; height: 26px; display: flex; align-items: center; justify-content: center;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.78rem; font-weight: 600; color: var(--accent);
+      background: var(--inline-bg); border-radius: 6px;
+    }
+
+    code:not(pre code) {
+      background: var(--inline-bg); padding: 0.12em 0.38em; border-radius: 4px;
+      font-size: 0.875em; color: var(--text);
+    }
+    pre {
+      background: var(--code-bg); color: var(--code-text);
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 18px 20px; margin: 0 0 18px;
+      overflow-x: auto; font-size: 0.86rem; line-height: 1.68;
+      white-space: pre; tab-size: 2;
+    }
+    pre code { background: none; padding: 0; font-size: inherit; color: inherit; }
+
+    .table-scroll { overflow-x: auto; margin: 0 0 18px; -webkit-overflow-scrolling: touch; }
+    table { border-collapse: collapse; width: 100%; min-width: 460px; font-size: 0.93rem; }
+    th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+    th {
+      font-size: 0.74rem; font-weight: 700; letter-spacing: 0.07em;
+      text-transform: uppercase; color: var(--text-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr { transition: background 0.15s; }
+    tbody tr:hover { background: var(--surface-hover); }
+    td code { white-space: nowrap; }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 22px 24px;
+      transition: box-shadow 0.2s ease;
+    }
+    .card:hover { box-shadow: 0 1px 2px var(--shadow), 0 8px 22px var(--shadow); }
+    .split { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+    .card h3 { margin-top: 0; display: flex; align-items: center; gap: 9px; font-size: 1.02rem; }
+    .card h3 .tag {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 5px;
+    }
+    .tag.do { color: var(--positive); background: color-mix(in srgb, var(--positive) 14%, transparent); }
+    .tag.dont { color: var(--negative); background: color-mix(in srgb, var(--negative) 14%, transparent); }
+    .card ul { margin-bottom: 0; }
+
+    .callout {
+      border-left: 3px solid var(--accent); background: var(--surface);
+      border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 0 0 18px;
+    }
+    .callout p { margin-bottom: 0; }
+
+    footer.page {
+      margin-top: 72px; padding-top: 22px; border-top: 1px solid var(--rule);
+      font-size: 0.82rem; color: var(--text-secondary);
+      display: flex; flex-wrap: wrap; gap: 10px 20px; justify-content: space-between;
+    }
+
+    /* ===== ANIMATION ===== */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    .animate { animation: fadeInUp 0.5s ease-out both; }
+    .animate.delay-1 { animation-delay: 0.06s; }
+    .animate.delay-2 { animation-delay: 0.12s; }
+    .animate.delay-3 { animation-delay: 0.18s; }
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.5s ease, transform 0.5s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+
+    /* ===== MENU ===== */
+    .viz-menu { position: fixed; top: 16px; right: 16px; z-index: 9999; }
+    .viz-menu-toggle {
+      width: 42px; height: 42px; border-radius: 11px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); cursor: pointer; display: flex;
+      align-items: center; justify-content: center; transition: background 0.2s;
+      box-shadow: 0 2px 10px var(--shadow);
+    }
+    .viz-menu-toggle:hover { background: var(--surface-hover); }
+    .viz-menu-dropdown {
+      position: absolute; top: 50px; right: 0; min-width: 194px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 11px; padding: 7px; box-shadow: 0 10px 34px var(--shadow);
+      opacity: 0; visibility: hidden; transform: translateY(-8px); transition: all 0.2s;
+    }
+    .viz-menu-dropdown.open { opacity: 1; visibility: visible; transform: translateY(0); }
+    .viz-menu-dropdown button {
+      width: 100%; padding: 9px 12px; border: none; border-radius: 7px;
+      background: transparent; color: var(--text); font-size: 0.875rem;
+      font-family: inherit; cursor: pointer; text-align: left;
+      display: flex; align-items: center; gap: 10px; transition: background 0.15s;
+    }
+    .viz-menu-dropdown button:hover { background: var(--surface-hover); }
+    .viz-menu-dropdown svg { flex: none; }
+
+    .skip-to-content {
+      position: absolute; top: -60px; left: 6px; background: var(--accent);
+      color: #fff; padding: 9px 14px; text-decoration: none; border-radius: 6px;
+      z-index: 10000; transition: top 0.2s;
+    }
+    .skip-to-content:focus { top: 6px; }
+
+    /* ===== PRINT ===== */
+    @media print {
+      body { background: #fff !important; color: #000 !important; }
+      .viz-menu, nav.toc, .skip-to-content { display: none !important; }
+      .layout { display: block; }
+      .reveal { opacity: 1 !important; transform: none !important; }
+      .card, pre, table { break-inside: avoid; border: 1px solid #ddd; box-shadow: none; }
+      section.doc { break-inside: avoid-page; }
+      * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    }
+    @page { margin: 0.8in; }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-to-content">본문으로 건너뛰기</a>
+
+  <div class="viz-menu">
+    <button class="viz-menu-toggle" onclick="toggleMenu()" aria-label="페이지 메뉴 열기" aria-haspopup="true" aria-expanded="false" id="vizMenuToggle">
+      <svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+        <line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/>
+      </svg>
+    </button>
+    <div class="viz-menu-dropdown" id="vizMenuDropdown" role="menu">
+      <button onclick="cycleTheme()" role="menuitem" aria-label="라이트/다크 테마 전환">
+        <svg id="themeIcon" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"></svg>
+        <span id="themeLabel">Dark</span>
+      </button>
+      <button onclick="window.print()" role="menuitem" aria-label="인쇄 또는 PDF 저장">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 8V3h8v5"/><rect x="3" y="8" width="14" height="6" rx="1.5"/><path d="M6 13h8v4H6z"/>
+        </svg>
+        <span>Print / PDF</span>
+      </button>
+    </div>
+  </div>
+
+  <main id="main-content">
+    <div class="wrap">
+      <header class="page animate">
+        <div class="eyebrow"><span class="dot"></span>spec-flow · skill guide</div>
+        <h1>claude-to-codex</h1>
+        <p class="lede">Claude 가 쓴 phase 구현 문서를 Codex 실행에 최적화된 명령형 문서로 다시 쓴다.</p>
+        <div class="badges">
+          <span class="badge mono">/spec-flow:claude-to-codex</span>
+          <span class="badge">CLI 플래그 없음</span>
+          <span class="badge">원본 phase 문서 read-only</span>
+          <span class="badge mono">docs/ai/phases/codex/</span>
+        </div>
+      </header>
+
+      <div class="layout">
+        <nav class="toc animate delay-1" aria-label="문서 목차">
+          <div class="toc-title">Contents</div>
+          <ol>
+            <li><a href="#summary">한 줄 요약</a></li>
+            <li><a href="#why">왜 필요한가</a></li>
+            <li><a href="#outputs">무엇을 만드는가</a></li>
+            <li><a href="#when">언제 쓰고 언제 안 쓰는가</a></li>
+            <li><a href="#invocation">호출 형식</a></li>
+            <li><a href="#steps">동작 단계</a></li>
+            <li><a href="#split">분할 조건</a></li>
+            <li><a href="#quality">품질 기준</a></li>
+            <li><a href="#caveats">주의사항 / 제약</a></li>
+          </ol>
+        </nav>
+
+        <div class="content animate delay-2">
+
+          <section class="doc" id="summary" data-reveal>
+            <h2>한 줄 요약</h2>
+            <p>Claude 가 쓴 phase 구현 문서를 <strong>Codex 가 그대로 실행할 수 있는 명령형 문서</strong>로
+            다시 쓴다. 산출물은 <code>docs/ai/phases/codex/&lt;base&gt;-codex-NN.md</code> 이고, 원본 phase
+            문서는 절대 건드리지 않는다.</p>
+          </section>
+
+          <section class="doc" id="why" data-reveal>
+            <h2>왜 필요한가</h2>
+            <p>Claude 와 설계 대화를 하며 쓴 phase 문서는 서술형이고 여지가 많다. "이렇게 하는 게
+            무난해 보인다", "필요하면 나중에", "고려해 볼 만하다" 같은 표현이 섞인다. 사람이
+            읽기에는 자연스럽지만 Codex 에 그대로 주면 판단을 요구받는 지점마다 결과가 흔들린다.</p>
+            <p>이 스킬은 그 서술을 명령으로 바꾸고, 모호하거나 미뤄 둔 표현을 제거해, <strong>원본 긴
+            설계 문서를 옆에 띄워 두지 않고도 생성된 문서 하나만으로 Codex 가 작업을 마칠 수
+            있게</strong> 만든다.</p>
+          </section>
+
+          <section class="doc" id="outputs" data-reveal>
+            <h2>무엇을 만드는가</h2>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr><th scope="col">대상</th><th scope="col">결과</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>docs/ai/phases/codex/&lt;base&gt;-codex-01.md</code></td>
+                    <td>변환된 명령형 문서. 분할 없으면 이 한 개</td>
+                  </tr>
+                  <tr>
+                    <td><code>-codex-02</code>, <code>-codex-03</code>, ...</td>
+                    <td>분할 조건이 실제로 걸렸을 때만 추가 생성</td>
+                  </tr>
+                  <tr>
+                    <td><code>AGENTS.md</code></td>
+                    <td><code>@CLAUDE.md</code> 한 줄 기준으로 생성/보완/무변경</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p>원본 base 파일명은 항상 보존하고 <code>-codex-NN</code> 을 붙인다. 번호는 <code>01</code> 부터 0-패딩한다.</p>
+          </section>
+
+          <section class="doc" id="when" data-reveal>
+            <h2>언제 쓰고 언제 안 쓰는가</h2>
+            <div class="split">
+              <div class="card">
+                <h3><span class="tag do">쓴다</span></h3>
+                <p>Claude 로 설계를 마쳤고, 실제 구현은 Codex 에 넘기려 할 때.</p>
+              </div>
+              <div class="card">
+                <h3><span class="tag dont">안 쓴다</span></h3>
+                <ul>
+                  <li>분해가 필요할 때. 이 스킬은 <strong>아무것도 분해하지 않는다.</strong> 같은 내용을 다른 실행자를
+                  위해 다시 쓸 뿐이다. PRD → TRD 는 <code>prd-to-trd</code>, TRD → 이슈는 <code>trd-to-issues</code> 다.</li>
+                  <li>요약본이 필요할 때. 결과물은 요약이 아니라 실무용 구현 문서이며 원본 의도에 충실해야
+                  한다.</li>
+                  <li><code>CLAUDE.md</code> 자체를 다시 쓰고 싶을 때. 명시적으로 요청하지 않는 한 건드리지 않는다.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section class="doc" id="invocation" data-reveal>
+            <h2>호출 형식</h2>
+            <p>CLI 플래그가 없다. 참조 문서들과 대상 phase 문서를 자연어로 지목하면 발동한다.</p>
+            <pre><code>docs/ai/architecture.md, docs/ai/backend.md, docs/ai/phases/phase-02-x.md 를
+참조해서 phase-02-x 문서를 codex 에서 작업하기 최적화된 설계문서로 변경해줘
+
+phase-03 문서를 codex용으로 재구성해줘
+
+이 phase 문서를 codex-friendly task 문서로 필요하면 분할해서 만들어줘</code></pre>
+          </section>
+
+          <section class="doc" id="steps" data-reveal>
+            <h2>동작 단계</h2>
+            <ol class="steps">
+              <li><strong>입력 읽기</strong> — 지목된 참조 문서 전부와 대상 phase 문서를 한 번에 읽고,
+              <code>AGENTS.md</code> / <code>CLAUDE.md</code> 로 repo 맥락을 파악한다.</li>
+              <li><strong>단일 vs 분할 판단</strong> — <strong>기본은 단일이다.</strong> 아래 조건이 실제로 걸릴 때만 나눈다.</li>
+              <li><strong>출력 작성</strong> — 서술을 명령형으로 바꾸고 모호/유예 표현을 제거해 정해진 템플릿
+              구조로 쓴다.</li>
+              <li><strong>AGENTS.md 동기화</strong> — 없으면 <code>@CLAUDE.md</code> 한 줄로 생성, 이미 있으면 그대로,
+              있는데 그 줄이 없으면 최소 침습적으로 추가한다.</li>
+              <li><strong>보고</strong> — 생성 문서 경로, 단일/분할 여부, <code>AGENTS.md</code> 처리 결과.</li>
+            </ol>
+          </section>
+
+          <section class="doc" id="split" data-reveal>
+            <h2>분할 조건</h2>
+            <div class="callout">
+              <p>기본값은 분할하지 않는 것이다. 다음 중 하나가 실제로 성립할 때만 나눈다.</p>
+            </div>
+            <ul>
+              <li>범위가 서로 다른 책임 도메인에 걸쳐 있어(backend/frontend/shared, infra/UX,
+              단계별 구현 슬라이스) Codex 가 한 번에 무관한 파일을 너무 많이 만져야 하는 경우</li>
+              <li>phase 가 <strong>검증되지 않은 외부 인터페이스</strong>에 의존하는 경우</li>
+            </ul>
+            <p>나눌 때는 기계적으로 균등 분할하지 않고 구현 경계를 따른다. 좋은 축은
+            backend / frontend / shared, transport / state / UI,
+            infrastructure / integration / UX refinement, 확정된 구현 먼저 / 불확실한 통합 나중.
+            불필요한 파편화를 피하고 <strong>최소 개수</strong>를 쓴다.</p>
+          </section>
+
+          <section class="doc" id="quality" data-reveal>
+            <h2>품질 기준</h2>
+            <ul>
+              <li>생성된 문서만으로 Codex 가 실행 가능할 것</li>
+              <li>구현 범위와 파일 목록이 모호하지 않을 것</li>
+              <li>원본의 Claude 작성 의도에 충실할 것</li>
+            </ul>
+          </section>
+
+          <section class="doc" id="caveats" data-reveal>
+            <h2>주의사항 / 제약</h2>
+            <ul>
+              <li><strong>원본 phase 문서를 수정하지 않는다.</strong></li>
+              <li><strong><code>CLAUDE.md</code> 를 다시 쓰지 않는다.</strong> SSOT 는 <code>CLAUDE.md</code> 이고 <code>AGENTS.md</code> 는
+              Codex 를 위한 얇은 다리 역할만 한다.</li>
+              <li><strong><code>AGENTS.md</code> 에 Codex 정책 문구를 임의로 덧붙이지 않는다.</strong> 사용자가 명시적으로
+              요청할 때만 추가한다.</li>
+              <li><code>AGENTS.md</code> 가 이미 구조화된 파일이어서 <code>@CLAUDE.md</code> 를 맨 위에 넣으면 깨지는
+              경우에는, 가장 덜 침습적인 위치에 넣고 기존 내용을 보존한다.</li>
+              <li>출력 디렉터리는 <code>docs/ai/phases/codex/</code> 고정이다.</li>
+            </ul>
+          </section>
+
+          <footer class="page">
+            <span>spec-flow plugin · skill guide</span>
+            <span class="mono">skills/claude-to-codex/SKILL.md</span>
+          </footer>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    var ICON_MOON = '<path d="M16 11.4A6.2 6.2 0 0 1 8.6 4 6.5 6.5 0 1 0 16 11.4z"/>';
+    var ICON_SUN = '<circle cx="10" cy="10" r="3.6"/><path d="M10 1.6v2M10 16.4v2M3.5 3.5l1.4 1.4M15.1 15.1l1.4 1.4M1.6 10h2M16.4 10h2M3.5 16.5l1.4-1.4M15.1 4.9l1.4-1.4"/>';
+
+    function toggleMenu() {
+      var d = document.getElementById('vizMenuDropdown');
+      var t = document.getElementById('vizMenuToggle');
+      var open = d.classList.toggle('open');
+      t.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    function closeMenu() {
+      var d = document.getElementById('vizMenuDropdown');
+      var t = document.getElementById('vizMenuToggle');
+      if (d) { d.classList.remove('open'); }
+      if (t) { t.setAttribute('aria-expanded', 'false'); }
+    }
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.viz-menu')) closeMenu();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
+
+    var savedTheme = null;
+    try { savedTheme = localStorage.getItem('viz-theme'); } catch (e) { savedTheme = null; }
+    var currentTheme = savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    function applyTheme(t) {
+      document.documentElement.className = 'theme-' + t;
+      var icon = document.getElementById('themeIcon');
+      var label = document.getElementById('themeLabel');
+      if (icon) icon.innerHTML = t === 'dark' ? ICON_SUN : ICON_MOON;
+      if (label) label.textContent = t === 'dark' ? 'Light' : 'Dark';
+      try { localStorage.setItem('viz-theme', t); } catch (e) {}
+      currentTheme = t;
+    }
+    function cycleTheme() { applyTheme(currentTheme === 'dark' ? 'light' : 'dark'); }
+    applyTheme(currentTheme);
+
+    document.querySelectorAll('[data-reveal]').forEach(function (el) { el.classList.add('reveal'); });
+    var revealObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('visible'); revealObserver.unobserve(e.target); }
+      });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.reveal').forEach(function (el) { revealObserver.observe(el); });
+  </script>
+</body>
+</html>

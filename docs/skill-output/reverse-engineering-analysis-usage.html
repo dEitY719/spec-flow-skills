@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ko" class="theme-light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>reverse-engineering-analysis 사용 결과 — spec-flow</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ===== THEMES (class-based only) ===== */
+    html.theme-light {
+      --bg: #FAFAF9; --surface: #FFFFFF; --surface-hover: #F5F5F4;
+      --border: rgba(15,23,42,0.10);
+      --text: #0f172a; --text-secondary: #64748b;
+      --accent: #2563eb; --accent-secondary: #7c3aed;
+      --positive: #059669; --negative: #e11d48; --warning: #b45309;
+      --code-bg: #F4F4F5; --code-text: #1f2937;
+      --table-head: #F5F5F4;
+      --shadow: 0 1px 2px rgba(15,23,42,0.04), 0 8px 24px rgba(15,23,42,0.06);
+    }
+    html.theme-dark {
+      --bg: #0A0A0A; --surface: #141414; --surface-hover: #1C1C1C;
+      --border: rgba(255,255,255,0.10);
+      --text: #EDEDED; --text-secondary: #9aa0a6;
+      --accent: #60a5fa; --accent-secondary: #a78bfa;
+      --positive: #10b981; --negative: #f43f5e; --warning: #f59e0b;
+      --code-bg: #101014; --code-text: #E4E4E7;
+      --table-head: #1A1A1A;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
+    }
+
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Pretendard',
+                   'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', Roboto,
+                   'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg); color: var(--text);
+      line-height: 1.75; -webkit-font-smoothing: antialiased;
+      letter-spacing: -0.005em;
+      transition: background 0.25s ease, color 0.25s ease;
+      scrollbar-gutter: stable;
+      word-break: keep-all; overflow-wrap: anywhere;
+    }
+    h1, h2, h3 { color: var(--text); letter-spacing: -0.025em; line-height: 1.25; text-wrap: balance; }
+    h1 { font-weight: 750; font-size: clamp(2rem, 5.5vw, 3rem); line-height: 1.14; }
+    h2 { font-weight: 650; font-size: clamp(1.5rem, 3.6vw, 2rem); }
+    h3 { font-weight: 600; font-size: 1.5rem; }
+    p, li, td, th, span, label, figcaption { font-weight: 400; font-size: 1rem; }
+    a { color: var(--accent); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+    a:hover { border-bottom-color: var(--accent); }
+    a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+    strong { font-weight: 650; }
+
+    /* ===== LAYOUT ===== */
+    .wrap { max-width: 900px; margin: 0 auto; padding: 0 24px 96px; }
+    header.page-head { padding: 72px 0 40px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--text-secondary);
+      border: 1px solid var(--border); background: var(--surface);
+      padding: 6px 12px; border-radius: 999px; margin-bottom: 20px;
+    }
+    .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+    .lede-quote {
+      margin-top: 24px; border-left: 3px solid var(--accent);
+      background: var(--surface); border-radius: 0 10px 10px 0;
+      padding: 16px 20px; color: var(--text);
+    }
+
+    section { padding: 40px 0 8px; border-top: 1px solid var(--border); }
+    section:first-of-type { border-top: none; }
+    section > h2 { margin-bottom: 16px; }
+    section > * + * { margin-top: 16px; }
+    .sec-num {
+      display: inline-block; min-width: 1.9em; color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+
+    ul, ol { padding-left: 1.35em; }
+    li + li { margin-top: 10px; }
+    li::marker { color: var(--text-secondary); }
+
+    /* ===== CARD ===== */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 22px 24px;
+      transition: box-shadow 0.2s ease, background 0.25s ease;
+    }
+    .card:hover { box-shadow: var(--shadow); }
+    .card > * + * { margin-top: 12px; }
+    .callout { border-left: 3px solid var(--accent); }
+    .callout.warn { border-left-color: var(--warning); }
+    .callout .label {
+      display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-secondary); margin-bottom: 6px;
+    }
+
+    /* ===== CODE ===== */
+    code {
+      font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+      font-size: 0.9em; background: var(--code-bg); color: var(--code-text);
+      padding: 0.15em 0.4em; border-radius: 5px; border: 1px solid var(--border);
+      word-break: break-all;
+    }
+    pre {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px 18px; overflow-x: auto;
+      line-height: 1.6; -webkit-overflow-scrolling: touch;
+    }
+    pre code {
+      background: none; border: none; padding: 0; font-size: 0.875rem;
+      color: var(--code-text); white-space: pre; word-break: normal;
+    }
+    pre.flow code { font-size: 0.8125rem; }
+
+    /* ===== FACT LIST ===== */
+    .facts { list-style: none; padding-left: 0; }
+    .facts > li {
+      position: relative; padding-left: 26px;
+    }
+    .facts > li::before {
+      content: ''; position: absolute; left: 6px; top: 0.75em;
+      width: 7px; height: 7px; border-radius: 2px;
+      background: var(--accent); opacity: 0.7;
+    }
+    .facts > li + li { margin-top: 14px; }
+
+    .meta-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text-secondary); border-radius: 999px;
+      padding: 4px 12px; font-size: 0.8125rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .chip b { color: var(--text); font-weight: 650; }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    .animate { animation: fadeInUp 0.55s ease-out both; }
+    .animate.delay-1 { animation-delay: 0.06s; }
+    .animate.delay-2 { animation-delay: 0.12s; }
+    .animate.delay-3 { animation-delay: 0.18s; }
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.5s ease, transform 0.5s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+
+    /* ===== MENU ===== */
+    .viz-menu { position: fixed; top: 16px; right: 16px; z-index: 9999; }
+    .viz-menu-toggle {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      box-shadow: var(--shadow); transition: background 0.2s;
+    }
+    .viz-menu-toggle:hover { background: var(--surface-hover); }
+    .viz-menu-dropdown {
+      position: absolute; top: 52px; right: 0; min-width: 190px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 8px; box-shadow: var(--shadow);
+      opacity: 0; visibility: hidden; transform: translateY(-8px);
+      transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
+    }
+    .viz-menu-dropdown.open { opacity: 1; visibility: visible; transform: translateY(0); }
+    .viz-menu-dropdown button {
+      width: 100%; padding: 10px 12px; border: none; border-radius: 8px;
+      background: transparent; color: var(--text); font-size: 0.875rem;
+      font-family: inherit; cursor: pointer; text-align: left;
+      display: flex; align-items: center; gap: 10px; transition: background 0.15s;
+    }
+    .viz-menu-dropdown button:hover { background: var(--surface-hover); }
+    .viz-menu-dropdown svg { flex: none; }
+
+    .skip-to-content {
+      position: absolute; top: -60px; left: 8px; background: var(--accent);
+      color: #fff; padding: 10px 14px; border: none; border-radius: 6px;
+      text-decoration: none; z-index: 10000; transition: top 0.15s;
+    }
+    .skip-to-content:focus { top: 8px; }
+
+    footer.page-foot {
+      border-top: 1px solid var(--border); margin-top: 48px; padding-top: 24px;
+      color: var(--text-secondary); font-size: 0.875rem;
+    }
+
+    /* ===== PRINT ===== */
+    @media print {
+      body { background: #fff !important; color: #000 !important; }
+      .viz-menu, .skip-to-content { display: none !important; }
+      .reveal { opacity: 1 !important; transform: none !important; }
+      .card, pre { break-inside: avoid; border: 1px solid #ddd; box-shadow: none; }
+      a { color: #000; border-bottom: none; }
+      * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    }
+    @page { margin: 1in; }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-to-content">본문으로 건너뛰기</a>
+
+  <div class="viz-menu">
+    <button class="viz-menu-toggle" onclick="toggleMenu()" aria-label="메뉴 열기" aria-haspopup="true" aria-expanded="false" id="vizMenuToggle">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/>
+      </svg>
+    </button>
+    <div class="viz-menu-dropdown" id="vizMenuDropdown" role="menu">
+      <button onclick="cycleTheme()" role="menuitem" aria-label="테마 전환">
+        <svg id="themeIcon" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+        <span id="themeLabel">Dark</span>
+      </button>
+      <button onclick="window.print()" role="menuitem" aria-label="인쇄 또는 PDF 저장">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 7V2.8h8V7"/><rect x="3" y="7" width="14" height="7" rx="1.5"/><path d="M6 12h8v5.2H6z"/>
+        </svg>
+        <span>Print / PDF</span>
+      </button>
+    </div>
+  </div>
+
+  <main id="main-content" role="main">
+    <div class="wrap">
+
+      <header class="page-head">
+        <span class="eyebrow animate"><span class="dot"></span>spec-flow · 실행 기록</span>
+        <h1 class="animate delay-1">reverse-engineering-analysis 사용 결과</h1>
+        <blockquote class="lede-quote animate delay-2">
+          <p>
+            <strong>한 줄 요약</strong> — 기존 기능 하나(여기서는 <code>.yml</code> 워크플로 파일)를 받아 재구현
+            프롬프트가 담긴 <code>analysis.md</code> 를 생성합니다.
+          </p>
+        </blockquote>
+<pre class="flow animate delay-3"><code>기능/파일 경로  ──▶  /spec-flow:reverse-engineering-analysis  ──▶  analysis.md</code></pre>
+      </header>
+
+      <section data-reveal aria-labelledby="s-cmd">
+        <h2 id="s-cmd"><span class="sec-num">1.</span>실행한 명령</h2>
+<pre><code>/spec-flow:reverse-engineering-analysis "&lt;feature or file path&gt;" [output directory]</code></pre>
+        <p>이번 예시:</p>
+<pre><code>/spec-flow:reverse-engineering-analysis .github/workflows/validate.yml \
+    docs/examples/reverse-engineering-analysis/</code></pre>
+      </section>
+
+      <section data-reveal aria-labelledby="s-input">
+        <h2 id="s-input"><span class="sec-num">2.</span>입력</h2>
+        <div class="card">
+          <p>
+            <code>.github/workflows/validate.yml</code> — 이 repo 의 CI 진입점(33줄). 검사 로직이 없고
+            <code>dEitY719/harness-skills</code> 의 재사용 워크플로를 <code>@main</code> 으로 호출하며 <code>plugin-name</code>
+            과 <code>allow-emoji-paths</code> 두 입력만 넘기는 얇은 호출자다. 흥미로운 동작이 이 repo
+            밖에 있어서 분석 대상으로 골랐다.
+          </p>
+        </div>
+      </section>
+
+      <section data-reveal aria-labelledby="s-result">
+        <h2 id="s-result"><span class="sec-num">3.</span>결과</h2>
+        <p>
+          <a href="../examples/reverse-engineering-analysis/analysis.md"><code>analysis.md</code></a> — 312줄,
+          17,963바이트. 섹션: Overview / Key Libraries / How It Works / File Map /
+          <strong>AI Implementation Prompt</strong> / Notes.
+        </p>
+        <div class="meta-row">
+          <span class="chip"><b>312</b> 줄</span>
+          <span class="chip"><b>17,963</b> 바이트</span>
+          <span class="chip"><b>6</b> 섹션</span>
+        </div>
+
+        <p>확인된 내용 일부:</p>
+        <ul class="facts">
+          <li>
+            호출되는 재사용 워크플로를 로컬 클론에서 특정 SHA 기준으로 읽어 11개 검사의
+            내부를 서술했고, 그 클론이 없었다면 알 수 없는 내용임을 문서에 명시했다.
+          </li>
+          <li>
+            <code>@main</code> 핀 때문에 분석에 유효기간이 있다 — upstream 머지 시 이 repo 의 커밋
+            변화 없이 CI 동작이 바뀐다.
+          </li>
+          <li>
+            <code>jq</code>, <code>python3</code>, PyYAML, <code>shellcheck</code> 어디에도 버전 고정이 없다. PyYAML 은
+            import 되지만 설치되지 않는다.
+          </li>
+          <li>
+            가장 긴 <code>SKILL.md</code> 가 100줄 제한 대비 99줄(<code>prd-to-trd</code>). 직접 재확인했다.
+          </li>
+        </ul>
+
+        <p>AI Implementation Prompt 섹션에 프로젝트 고유 절대경로가 없음을 확인했다.</p>
+
+        <div class="card callout warn">
+          <span class="label">정직한 단서</span>
+          <p>
+            <strong>정직한 단서</strong> — 이 실행은 <code>analysis.md</code> 를 끝까지 쓴 뒤 최종
+            <code>[OK] analysis written: &lt;path&gt;</code> 줄을 출력하기 전에 세션이 API 오류로 종료됐다.
+            산출물은 실물이고 내용도 검증했지만 콘솔 최종 판정 줄은 포착되지 않았다.
+          </p>
+        </div>
+      </section>
+
+      <footer class="page-foot">
+        <p>spec-flow plugin · 사용 결과 · reverse-engineering-analysis</p>
+      </footer>
+
+    </div>
+  </main>
+
+  <script>
+    var menuToggle = document.getElementById('vizMenuToggle');
+    function setMenu(open) {
+      var dropdown = document.getElementById('vizMenuDropdown');
+      if (!dropdown) return;
+      dropdown.classList.toggle('open', open);
+      if (menuToggle) menuToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    function toggleMenu() {
+      var dropdown = document.getElementById('vizMenuDropdown');
+      setMenu(dropdown ? !dropdown.classList.contains('open') : false);
+    }
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.viz-menu')) setMenu(false);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') setMenu(false);
+    });
+
+    // === Theme (class-based, OS detection on first visit) ===
+    var ICON_MOON = '<path d="M16.5 11.4A6.8 6.8 0 0 1 8.6 3.5a6.9 6.9 0 1 0 7.9 7.9Z"/>';
+    var ICON_SUN = '<circle cx="10" cy="10" r="3.6"/><path d="M10 1.6v2M10 16.4v2M3.1 3.1l1.4 1.4M15.5 15.5l1.4 1.4M1.6 10h2M16.4 10h2M3.1 16.9l1.4-1.4M15.5 4.5l1.4-1.4"/>';
+    var savedTheme = null;
+    try { savedTheme = localStorage.getItem('viz-theme'); } catch (e) { savedTheme = null; }
+    var currentTheme = savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    function applyTheme(t) {
+      document.documentElement.className = 'theme-' + t;
+      var icon = document.getElementById('themeIcon');
+      var label = document.getElementById('themeLabel');
+      // Menu offers the theme you can switch TO.
+      if (icon) icon.innerHTML = t === 'dark' ? ICON_SUN : ICON_MOON;
+      if (label) label.textContent = t === 'dark' ? 'Light' : 'Dark';
+      try { localStorage.setItem('viz-theme', t); } catch (e) {}
+      currentTheme = t;
+    }
+    function cycleTheme() { applyTheme(currentTheme === 'dark' ? 'light' : 'dark'); }
+    applyTheme(currentTheme);
+
+    // === Scroll Reveal ===
+    document.querySelectorAll('[data-reveal]').forEach(function (el) { el.classList.add('reveal'); });
+    var revealObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('visible'); revealObserver.unobserve(e.target); }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(function (el) { revealObserver.observe(el); });
+  </script>
+</body>
+</html>
