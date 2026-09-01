@@ -1,4 +1,5 @@
 {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "spec-flow-skills",
   "description": "Spec-pipeline skills — PRD to TRD, TRD to GitHub issues, and reverse-engineering finished work back into specs and prompts",
   "owner": {
@@ -14,7 +15,8 @@
       "author": {
         "name": "dEitY719",
         "url": "https://github.com/dEitY719"
-      }
+      },
+      "homepage": "https://github.com/dEitY719/spec-flow-skills"
     }
   ]
 }
