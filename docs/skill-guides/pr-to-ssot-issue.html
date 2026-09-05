@@ -415,7 +415,7 @@
             <ul>
               <li>정상 흐름을 탄 PR 에는 쓰지 않는다. 이미 PRD/TRD 인용 이슈와 연결돼 있으면 overlap 으로 판단해 exit 3 으로 거부한다(<code>--force-overlap</code> 으로만 강행 가능).</li>
               <li>빠진 명세가 실제로 없을 때. 5개 갭 섹션이 전부 <code>(none)</code> 이면 exit 4 로 거부하고 일반 리뷰를 권한다. <strong>빈 껍데기 이슈를 만들지 않는다.</strong></li>
-              <li>대화 내용을 이슈로 남기고 싶을 때 → <code>gh:issue-create</code>.</li>
+              <li>대화 내용을 이슈로 남기고 싶을 때 → <code>gh-issue:create</code>.</li>
               <li>기능을 프롬프트로 뽑고 싶을 때 → <code>reverse-engineering-analysis</code>. 이 스킬은 PR 을 명세로 되돌리고, 저쪽은 기능을 재구현 프롬프트로 되돌린다.</li>
             </ul>
           </article>
@@ -503,8 +503,8 @@
             <p><code>GH_DISABLE_AI_METRICS=1</code> 이면 메트릭 관련 동작을 억제한다.</p>
           </article>
           <article class="card">
-            <h4><code>/gh-issue-flow</code> 자동 연결 없음</h4>
-            <p><code>/gh-issue-flow</code> 로 자동 연결되지 않는다. 힌트만 출력한다.</p>
+            <h4><code>/gh-flow:issue</code> 자동 연결 없음</h4>
+            <p><code>/gh-flow:issue</code> 로 자동 연결되지 않는다. 힌트만 출력한다.</p>
           </article>
         </div>
       </section>
@@ -532,7 +532,7 @@
             <path d="M3 10h13M11 5l5 5-5 5"/>
           </svg>
           <div>
-            <span class="name">gh:issue-flow</span>
+            <span class="name">gh-flow:issue</span>
             <span> — 등록된 SSOT 이슈를 받아 구현 루프를 돌린다.</span>
           </div>
         </div>

@@ -22,7 +22,7 @@ issues, and finished work back into specs and prompts:
 The skills were extracted from `dEitY719/dotfiles` (`claude/skills/devx-*`) as a
 snapshot — see the first commit for the source SHA. The dotfiles copies remain
 in place for now; they are removed in a later phase of that repo's migration
-plan (#1410 Phase 4).
+plan (dEitY719/dotfiles#1410 Phase 4).
 
 ## Layout: root manifests, one flat `skills/`
 
@@ -101,7 +101,7 @@ upstream dotfiles repo. **Two exceptions, both exact files:**
 - `skills/pr-to-ssot-issue/references/metrics-footer.md` — the ai-metrics footer
   template. Those glyphs *are* the output format the skill emits, and the
   upstream dotfiles `CLAUDE.md` names this the single sanctioned emoji exception
-  in the whole project (#317 F-2, PR #320).
+  in the whole project (dEitY719/dotfiles#317 F-2, PR #320).
 - `skills/trd-to-issues/references/decomposition-rules.md` — GitHub priority
   label names quoted verbatim as they appear on the board.
 
@@ -115,5 +115,6 @@ The version appears in seven manifests: `.claude-plugin/marketplace.json`,
 `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`,
 `.kimi-plugin/plugin.json`, `.hermes-plugin/plugin.yaml`,
 `gemini-extension.json`, and `package.json`. CI checks that they agree — bump
-all of them together. Versioning is independent per repo (#1410 D-9); this repo
-does not move in lockstep with its siblings.
+all of them together. Versioning is independent per repo
+(dEitY719/dotfiles#1410 D-9); this repo does not move in lockstep with its
+siblings.

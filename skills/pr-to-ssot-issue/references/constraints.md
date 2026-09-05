@@ -21,14 +21,14 @@ new SSOT issue's audit trail meaningful.
   pointer back to the PR. The PR thread stays clean.
 - Never `gh pr review <PR#>` — reviewing the PR is out of scope.
 - If a future variant needs PR mutation, route through a sister
-  skill (`/devx:exception-merge-checklist`) rather than relaxing this
+  skill (`/gh-verify:exception-merge-checklist`) rather than relaxing this
   rule.
 
 ## Label / milestone safety
 
 - **Never auto-create labels.** Pre-validate via `gh label list` (Step
-  5.3). Missing → stop with the missing list. Memory:
-  `feedback_gh_label_no_autocreate.md`.
+  5.3). Missing → stop with the missing list. POST `/labels` silently
+  creates the label and pollutes the repo's label namespace.
 - **Never auto-create milestones.** Pre-validate via `gh api
   /milestones` when `--milestone` is set. Missing → stop.
 
@@ -50,8 +50,8 @@ new SSOT issue's audit trail meaningful.
 ## Scope boundary
 
 - **No auto-implementation.** This skill stops at SSOT scope
-  registration. The natural follow-up is `/gh-issue-flow <new>`. Do
-  not chain it from inside this skill — `gh-issue-flow` is a
+  registration. The natural follow-up is `/gh-flow:issue <new>`. Do
+  not chain it from inside this skill — `gh-flow:issue` is a
   user-initiated decision, not an automatic consequence.
 - **No silent secondary mutations.** The only mutations are: (a) the
   new issue, (b) the optional parent backlink comment. Anything else
@@ -63,7 +63,7 @@ new SSOT issue's audit trail meaningful.
 
 - **`GH_DISABLE_AI_METRICS=1`** — skips the ai-metrics footer in the
   new issue body **and** the parent backlink comment. Parity with the
-  five `gh-issue-flow` sub-skills (issue #399).
+  five `gh-flow:issue` sub-skills (dEitY719/dotfiles#399).
 - **`GH_ISSUE_BLOCK_LABELS`** — not applicable. This skill creates
   the new issue from scratch; it does not implement an existing one.
   The block-label guard in `gh-issue-implement` Step 3.2 is the
@@ -83,5 +83,3 @@ new SSOT issue's audit trail meaningful.
 - `SKILL.md` Constraints section — abbreviated mirror of this file.
 - `references/create-cmd.md` — where the read-only and label rules
   are enforced.
-- `feedback_gh_label_no_autocreate.md` (memory) — the underlying
-  reason for the label rule.

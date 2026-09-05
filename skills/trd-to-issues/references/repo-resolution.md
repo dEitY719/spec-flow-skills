@@ -13,9 +13,9 @@ multiple skills can reuse the convention.
    - Otherwise default to `origin`.
 
    The two cases below are NOT in conflict:
-   - `--remote` omitted → silently use `origin` (matches `gh-issue-create`
-     / `gh-pr` / `gh-pr-resolve-conflict` parity, the dotfiles
-     convention).
+   - `--remote` omitted → silently use `origin` (matches `gh-issue:create`
+     / `gh-pr:create` / `gh-resolve:conflict` parity — the shared
+     convention across the split skill repos).
    - `--remote <name>` passed but `<name>` does not exist → fail-fast.
      The "no silent fallback" rule below applies **only** to this
      second case.

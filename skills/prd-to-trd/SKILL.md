@@ -5,6 +5,7 @@ description: >-
   "PRD를 TRD로 분해해줘", "PRD 한 개를 컴포넌트별 TRD 로 쪼개줘",
   "scaffold TRDs from this product spec". TRD 를 Epic/Feature/Task 이슈로
   등록하는 것은 spec-flow:trd-to-issues.
+license: MIT
 allowed-tools: Bash, Read, Edit, Write, Grep
 metadata:
   model_recommendation:
@@ -29,9 +30,8 @@ default, `--apply`, `--plan-out <path>`, `--force`): full table in
 
 The `<prd-path>` must exist as a regular file — on a miss, print
 `[FAIL] spec-flow:prd-to-trd: PRD not found: <path>` and stop with exit 1.
-v1 supports a single PRD only; if more than one positional argument
-is supplied, stop with `[FAIL] multi-PRD input not supported in v1`
-(multi-PRD batching is OQ-4 for a follow-up).
+v1 supports a single PRD only; more than one positional argument stops with
+`[FAIL] multi-PRD input not supported in v1` (batching is OQ-4 for a follow-up).
 
 ## Step 2: Read PRD + Propose Decomposition
 

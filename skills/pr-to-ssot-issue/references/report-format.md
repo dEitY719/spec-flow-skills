@@ -22,7 +22,7 @@ exit path:
   Audit reason: "<first 80 chars>..."
   URL: <issue URL>
 
-Next: /gh-issue-flow <new>
+Next: /gh-flow:issue <new>
 ```
 
 - `Buckets:` mirrors the Step 2 bucket table (file counts per bucket).
@@ -43,13 +43,13 @@ Next: /gh-issue-flow <new>
 Re-run without --dry-run to register on GitHub.
 ```
 
-No `Next:` line — the issue doesn't exist yet, so `/gh-issue-flow <N>`
+No `Next:` line — the issue doesn't exist yet, so `/gh-flow:issue <N>`
 would be wrong to suggest.
 
 ## Failure templates
 
 Match the verdict shape used by sister skills (`spec-flow:trd-to-issues`,
-`gh:issue-create`):
+`gh-issue:create`):
 
 ```
 [FAIL] spec-flow:pr-to-ssot-issue reason=<short> pr=#<PR#> elapsed=~<ELAPSED> min
@@ -87,12 +87,12 @@ Examples:
 ## Why this shape
 
 - `[OK]` / `[FAIL]` / `[DRY-RUN]` first token — greppable by
-  `gh-issue-flow` and CI dashboards.
+  `gh-flow:issue` and CI dashboards.
 - `reason=<short>` (failures) is a stable enum, not free prose — keeps
   CI alerting simple.
 - `Buckets:` + `Gaps:` always visible — the human reviewer can confirm
   the SSOT scope at a glance without opening the issue.
-- `Next:` last — `gh-issue-flow` strips this line when composing.
+- `Next:` last — `gh-flow:issue` strips this line when composing.
 
 ## Pairs with
 

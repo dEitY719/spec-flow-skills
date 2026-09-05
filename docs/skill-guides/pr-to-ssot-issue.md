@@ -35,7 +35,7 @@ Parent / Related · Audit · TODO 후속 · 관계 / Cross-refs
   overlap 으로 판단해 exit 3 으로 거부한다(`--force-overlap` 으로만 강행 가능).
 - 빠진 명세가 실제로 없을 때. 5개 갭 섹션이 전부 `(none)` 이면 exit 4 로 거부하고
   일반 리뷰를 권한다. **빈 껍데기 이슈를 만들지 않는다.**
-- 대화 내용을 이슈로 남기고 싶을 때 → `gh:issue-create`.
+- 대화 내용을 이슈로 남기고 싶을 때 → `gh-issue:create`.
 - 기능을 프롬프트로 뽑고 싶을 때 → `reverse-engineering-analysis`. 이 스킬은 PR 을
   명세로 되돌리고, 저쪽은 기능을 재구현 프롬프트로 되돌린다.
 
@@ -81,7 +81,7 @@ Parent / Related · Audit · TODO 후속 · 관계 / Cross-refs
 - **remote 가 없으면 조용히 폴백하지 않는다.**
 - **중간 실패 시 롤백하지 않는다.** 부분 상태를 보고하고 멈춘다.
 - `GH_DISABLE_AI_METRICS=1` 이면 메트릭 관련 동작을 억제한다.
-- `/gh-issue-flow` 로 자동 연결되지 않는다. 힌트만 출력한다.
+- `/gh-flow:issue` 로 자동 연결되지 않는다. 힌트만 출력한다.
 
 ## 종료 코드
 
@@ -95,4 +95,4 @@ Parent / Related · Audit · TODO 후속 · 관계 / Cross-refs
 
 ## 이어지는 스킬
 
-`gh:issue-flow` — 등록된 SSOT 이슈를 받아 구현 루프를 돌린다.
+`gh-flow:issue` — 등록된 SSOT 이슈를 받아 구현 루프를 돌린다.

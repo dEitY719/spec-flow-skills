@@ -68,8 +68,8 @@
 ## What the skill will NOT do
 
 - Auto-create missing labels on `--apply` — pre-validates via `gh label
-  list` and stops with the missing list. Reason:
-  `feedback_gh_label_no_autocreate.md`.
+  list` and stops with the missing list. Reason: POST `/labels` silently
+  creates the label and pollutes the repo's label namespace.
 - Silently fall back to `origin` when `--remote <name>` is missing.
 - Auto-author TRD or PRD content — input only.
 - Auto-create Project board columns — uses the existing board.
@@ -92,8 +92,8 @@
 - [[spec-flow:prd-to-trd]] — the **previous** step. Scaffolds the
   per-component TRDs this skill consumes (PRD → TRD scaffolds → human
   fills body → this skill → Milestones + Issues).
-- `gh:issue-implement` / `gh:issue-flow` — pick up Task issues this
+- `gh-issue:implement` / `gh-flow:issue` — pick up Task issues this
   skill registered and implement them.
-- `gh:issue-create` — single-issue alternative when batch decomposition
+- `gh-issue:create` — single-issue alternative when batch decomposition
   is overkill (also absorbs the old `requirement-spec`/`requirement-draft`
   responsibilities).

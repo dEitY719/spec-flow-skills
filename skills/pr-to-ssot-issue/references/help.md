@@ -28,7 +28,7 @@
 | `--label <name>` | `documentation`, `priority:medium` | Repeatable. `--apply` 시 사전 검증 — missing 시 stop. 자동 생성 안 함. 라벨 이름은 대상 repo 에 실제 존재하는 것으로 교체해서 호출한다 (priority 라벨 명칭은 repo 마다 다름). |
 | `--force-overlap` | off | PR 이 이미 PRD/TRD 인용 issue 와 linked 돼 있어도 진행. Default 는 overlap 감지 시 exit 3. |
 | `--dry-run` | off | `.claude/.pr-to-ssot.<PR#>.draft.md` 만 작성. `gh issue create` 생략. |
-| `--no-next-hint` | off | 최종 보고에서 `Next: /gh-issue-flow <N>` 라인을 생략. composer (gh:issue-flow 등) 에서 호출할 때 사용. |
+| `--no-next-hint` | off | 최종 보고에서 `Next: /gh-flow:issue <N>` 라인을 생략. composer (gh-flow:issue 등) 에서 호출할 때 사용. |
 
 ## Examples
 
@@ -73,14 +73,14 @@
 5. Creates the new SSOT issue on the target remote, then posts a backlink
    comment on `--parent` (if set).
 6. Reports the new issue number, URL, bucket counts, and gap matrix, plus
-   a `Next: /gh-issue-flow <N>` hint (unless `--no-next-hint` is set).
+   a `Next: /gh-flow:issue <N>` hint (unless `--no-next-hint` is set).
 
 ## What the skill will NOT do
 
 - **Mutate the source PR.** Read-only. Never `gh pr edit`, never `gh pr
   comment`, never add labels to the PR.
 - **Auto-create missing labels.** Pre-validates via `gh label list` and
-  stops with the missing list. Memory: `feedback_gh_label_no_autocreate.md`.
+  stops with the missing list — POST `/labels` pollutes the label namespace.
 - **Continue without `--reason`.** Empty / shorter than 10 chars → exit 2.
 - **Silently fall back when `--remote <name>` is missing.** Stops with
   the remote list.
@@ -99,9 +99,9 @@
 
 ## Pairs with
 
-- `/gh-issue-flow <N>` — the natural next step once the SSOT issue is
+- `/gh-flow:issue <N>` — the natural next step once the SSOT issue is
   registered. Drives the full Issue → 구현 → PR loop.
-- `/devx:exception-merge-checklist` (TODO, 별도 이슈) — sister exit-side
+- `/gh-verify:exception-merge-checklist` — sister exit-side
   skill. Together they form the exception-PR roundtrip: entry
   (reverse-engineer SSOT) + exit (merge gate).
 
