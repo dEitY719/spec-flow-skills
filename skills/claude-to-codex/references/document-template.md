@@ -53,10 +53,7 @@ Each generated document must end with:
 
 ```text
 Implement this Codex task exactly as specified in this document.
-Before making changes:
-- Read AGENTS.md
-- Read CLAUDE.md
-- Read the referenced input documents listed above
+Before making changes, read the referenced input documents listed above.
 Execution rules:
 - Only modify the files listed in "Files to create or modify"
 - Follow the implementation instructions in order

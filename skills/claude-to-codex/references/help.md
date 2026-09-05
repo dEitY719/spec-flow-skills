@@ -21,8 +21,9 @@ phase-03 문서를 codex용으로 재구성해줘
    `references/output-and-split.md`.
 3. Writes `docs/ai/phases/codex/<base>-codex-NN.md` (zero-padded from
    `01`; additional `-codex-02`, `-codex-03`, ... only appear when split).
-4. Rewrites prose into imperative Codex instructions — see
-   `references/rewrite-rules.md` and `references/document-template.md`.
+4. Contracts the scope — goal, exact `NEW`/`MODIFY` file list, excluded
+   work, ordered steps — see `references/rewrite-rules.md` and
+   `references/document-template.md`.
 5. Creates or updates `AGENTS.md` with `@CLAUDE.md` per
    `references/agents-md-handling.md`. Never rewrites `CLAUDE.md` itself.
 

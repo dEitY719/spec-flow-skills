@@ -108,7 +108,7 @@ These skills are written in Claude Code's vocabulary, but they are mostly
 read-document / write-markdown work plus shell calls, so they port cleanly. The
 per-harness tool mappings and capability gaps are documented once, in
 [`dEitY719/harness-skills/references/`](https://github.com/dEitY719/harness-skills/tree/main/references)
-(#1410 F-5); read the one file for the harness you are on.
+(dEitY719/dotfiles#1410 F-5); read the one file for the harness you are on.
 
 | Skill | Claude Code | Codex | Kimi | Gemini / Antigravity | Hermes | OpenCode |
 |-------|:-----------:|:-----:|:----:|:--------------------:|:------:|:--------:|
@@ -163,7 +163,7 @@ a migration later.
 [`.github/workflows/validate.yml`](.github/workflows/validate.yml) calls the
 reusable workflow owned by
 [`dEitY719/harness-skills`](https://github.com/dEitY719/harness-skills/blob/main/.github/workflows/skill-check.yml)
-(#1410 D-10) — manifest parsing, required files, skill frontmatter,
+(dEitY719/dotfiles#1410 D-10) — manifest parsing, required files, skill frontmatter,
 progressive-disclosure line limits, the Codex description budget, version
 agreement, shellcheck, and an emoji gate.
 
@@ -183,10 +183,10 @@ These skills were extracted from
 as a content snapshot — no history rewriting. The source commit SHA is recorded
 in this repo's first commit message. The `devx-` prefix is dropped here because
 the plugin namespace (`spec-flow:`) now supplies it; the dotfiles originals stay
-put and keep working under their old namespace until #1410 Phase 4 removes
+put and keep working under their old namespace until dEitY719/dotfiles#1410 Phase 4 removes
 them.
 
-This is part of Phase 2 of the dotfiles #1410 migration (tracked as #1657);
+This is part of Phase 2 of the dotfiles #1410 migration (tracked as dEitY719/dotfiles#1657);
 `packaging-skills` was Phase 0 and `harness-skills` and `notes-skills` are
 its Phase 0/1 siblings.
 

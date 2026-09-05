@@ -5,6 +5,7 @@ description: >-
   Milestone/Issue 를 대량 등록한다. Use for /spec-flow:trd-to-issues,
   "TRD를 마일스톤/이슈로 분해해줘", "TRD 로 이슈 일괄 등록",
   "decompose this TRD into issues". PRD → TRD 스캐폴드는 spec-flow:prd-to-trd.
+license: MIT
 allowed-tools: Bash, Read, Edit, Write, Grep
 metadata:
   model_recommendation:
@@ -93,5 +94,5 @@ Operational constraints: see `references/constraints.md`.
 ## Related Skills
 
 `spec-flow:prd-to-trd` — previous pipeline stage (PRD → per-component TRD
-scaffolds); this one starts from filled-in TRDs. `gh:issue-create` —
+scaffolds); this one starts from filled-in TRDs. `gh-issue:create` —
 single-issue alternative when bulk decomposition is overkill.

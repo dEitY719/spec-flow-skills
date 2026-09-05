@@ -81,5 +81,5 @@
 - [[spec-flow:trd-to-issues]] — the **next** step. Takes the TRDs this
   skill scaffolds (after a human fills them in) and decomposes them
   into GitHub Milestones + Issues.
-- `gh:issue-create` — single-issue alternative when batch
+- `gh-issue:create` — single-issue alternative when batch
   decomposition is overkill.

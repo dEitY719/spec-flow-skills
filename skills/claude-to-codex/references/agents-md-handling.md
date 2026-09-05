@@ -1,7 +1,7 @@
 # spec-flow:claude-to-codex — AGENTS.md handling
 
 Repository root means the nearest project root containing the main
-project files (of the target project being worked on — not this dotfiles
+project files (of the target project being worked on — not this skills
 repo).
 
 When invoked:

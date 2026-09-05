@@ -1,9 +1,8 @@
-# spec-flow:claude-to-codex — Rewrite rules
+# spec-flow:claude-to-codex — Work-order rules
 
-Rewrite the target phase document for Codex using imperative instructions.
-Prefer explicit, operational wording over descriptive wording. The
-generated Codex documents must reduce ambiguity and avoid high-level
-narrative.
+Turn the target phase document into a scope-bounded work order for Codex:
+name the goal, the exact files in play, and where to stop. The generated
+Codex documents must reduce ambiguity and avoid high-level narrative.
 
 Preserve, unchanged, from the source phase document:
 1. The original intent.
@@ -23,18 +22,3 @@ For each generated Codex document:
   conservatively
 - provide a concrete completion checklist
 - include a Codex execution prompt block at the bottom
-
-Prefer wording like:
-- "Create ..."
-- "Modify ..."
-- "Register ..."
-- "Do not ..."
-- "Stop after ..."
-- "Return a short summary of changed files and unresolved risks."
-
-Do not preserve vague wording such as:
-- "could support"
-- "might later be used"
-- "optionally add" unless the option is intentionally deferred
-- narrative architecture commentary that does not help immediate
-  implementation

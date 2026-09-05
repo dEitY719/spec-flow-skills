@@ -27,7 +27,7 @@ If `--dry-run` is set:
 - Exit 0.
 
 No GitHub mutation, no `Next:` hint (the issue doesn't exist yet —
-`/gh-issue-flow <N>` would be wrong).
+`/gh-flow:issue <N>` would be wrong).
 
 ## 5.3 — Label pre-validation
 
@@ -48,7 +48,8 @@ Compare against the labels passed via `--label` (default
   Fix: create the label manually (`gh label create ...`), then re-run.
 ```
 
-**Never POST `/labels`.** Memory: `feedback_gh_label_no_autocreate.md`.
+**Never POST `/labels`.** It silently creates the label and pollutes the
+repo's label namespace.
 
 ## 5.4 — Milestone pre-validation (optional)
 
@@ -60,7 +61,7 @@ gh api --paginate "repos/{owner}/{repo}/milestones" --repo "$TARGET_REPO" --jq '
 
 `--paginate` covers repos with > 30 milestones (the default page size).
 The `{owner}/{repo}` placeholder + `--repo "$TARGET_REPO"` combination is
-the same pattern used in `gh:pr-resolve-conflict` Step 5 — `gh api`'s
+the same pattern used in `gh-resolve:conflict` Step 5 — `gh api`'s
 `--repo` flag safely parses both URL and `owner/repo` forms, so this stays
 robust whether `TARGET_REPO` came from `git remote get-url` (URL form) or
 `gh repo view --json nameWithOwner` (`owner/repo` form).
@@ -111,7 +112,7 @@ created. Manually link or re-run with `gh issue comment <parent> ...`.
 ```
 
 `GH_DISABLE_AI_METRICS=1` suppresses the entire backlink — parity
-with `gh-issue-flow` Step 2.6 (issue #399).
+with `gh-flow:issue` Step 2.6 (dEitY719/dotfiles#399).
 
 ## 5.7 — Source PR is read-only
 
@@ -123,7 +124,7 @@ Reminders for the implementer:
 - Never `gh pr review <PR#>` — reviewing the PR is out of scope.
 
 If a future variant needs to touch the PR (e.g. add a `tracked-by-#<N>`
-label), route it through a sister skill (`/devx:exception-merge-checklist`)
+label), route it through a sister skill (`/gh-verify:exception-merge-checklist`)
 rather than relaxing this read-only rule.
 
 ## Pairs with

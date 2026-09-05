@@ -20,14 +20,16 @@ mutating GitHub.
       --plan-out /tmp/plan.md
   ```
 
-  with `Target repo: dEitY719/dotfiles`. The `Generated:` timestamp
-  obviously varies — diffs should ignore that line.
+  Two headers are environment-dependent and must be excluded from any
+  diff: `Generated:` (run timestamp) and `Target repo:` (resolved from the
+  git remote, so a run here yields `dEitY719/spec-flow-skills` while the
+  fixture keeps the `dEitY719/dotfiles` value it was recorded with).
 
 ## Manual verification
 
 ```bash
-diff <(grep -v '^Generated:' /tmp/plan.md) \
-     <(grep -v '^Generated:' \
+diff <(grep -vE '^(Generated|Target repo):' /tmp/plan.md) \
+     <(grep -vE '^(Generated|Target repo):' \
        skills/trd-to-issues/references/samples/expected-plan.md)
 ```
 

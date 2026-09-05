@@ -95,7 +95,7 @@ The 5 frontmatter slots above (`상태` / `책임 PRD 항목` / `인용 NF`
 
 These notes live **outside** the verbatim template block on purpose:
 the block must be copy-pasteable into a real TRD with no manual
-cleanup of inline annotations (#778 review).
+cleanup of inline annotations (dEitY719/dotfiles#778 review).
 
 ## Why this template is built-in
 

@@ -5,8 +5,8 @@ Detailed substeps for the issue creation phase.
 1. **Pre-validate labels** —
    `gh label list --repo "$TARGET_REPO" --json name --jq '.[].name'`.
    Any label referenced by the plan that is missing → stop with the
-   missing list. **Never POST `/labels`** (memory:
-   `feedback_gh_label_no_autocreate.md`).
+   missing list. **Never POST `/labels`** — it silently creates the label
+   and pollutes the repo's label namespace.
 2. **Bulk-create milestones** —
    `gh api repos/$TARGET_REPO/milestones -X POST -f title=... -f description=...`.
    Title collision → stop and report (no silent skip/merge).
@@ -17,6 +17,11 @@ Detailed substeps for the issue creation phase.
    --body-file <patched>`.
 5. **Promote first milestone to Ready** (skip if `--no-ready`) —
    `claude-set-issue-status <real-N> "Ready"` per first-milestone issue.
+   Guard it: `command -v claude-set-issue-status >/dev/null` first. The
+   helper ships with `dEitY719/dotfiles`, not with this repo, so when it is
+   absent emit one `[WARN] claude-set-issue-status not installed — Ready
+   promotion skipped` and finish normally. Never abort here: milestones and
+   issues already exist by this point and there is no rollback.
 
 Mid-flow failure: report partial state (created milestones / issues so
 far), emit `[FAIL] spec-flow:trd-to-issues <reason>`, and stop — no automatic

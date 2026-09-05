@@ -1,24 +1,27 @@
 ---
 name: claude-to-codex
 description: >-
-  Claude 로 작성한 phase 구현 문서를 Codex 실행에 최적화된 명령형 문서로
-  변환(필요하면 분할)한다. Use for /spec-flow:claude-to-codex, "이 phase 문서를
-  codex용으로 재구성해줘", "codex 에서 작업하기 최적화된 설계문서로 바꿔줘",
-  "convert this phase doc for Codex".
+  Claude 로 작성한 phase 구현 문서를, 고칠 파일과 순서와 멈출 지점을 못박은
+  scope-bounded work order 로 재구성(필요하면 분할)한다. Use for
+  /spec-flow:claude-to-codex, "이 phase 문서를 codex용으로 재구성해줘",
+  "codex 에서 작업하기 최적화된 설계문서로 바꿔줘",
+  "convert this phase doc into a scope-bounded work order for Codex".
+license: MIT
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
 metadata:
   model_recommendation:
     tier: sonnet
-    reason: "phase-doc → imperative Codex-doc rewrite; split-boundary judgment; structured reasoning, no direct code execution"
+    reason: "phase-doc → scope-bounded Codex work order; split-boundary judgment; structured reasoning, no direct code execution"
     claude: prefer
     non_claude: advisory-only
 ---
 
 # Purpose
 
-Convert Claude-authored phase implementation documents into Codex-friendly,
-imperative implementation documents. Preserve the original phase document —
-never edit it. Generate derived documents under `docs/ai/phases/codex/`.
+Turn a Claude-authored phase implementation document into a **scope-bounded
+work order** — one document naming exactly which files may change, in what
+order, and where to stop. Preserve the original phase document — never edit
+it. Generate derived documents under `docs/ai/phases/codex/`.
 Treat `CLAUDE.md` as the source of truth and `AGENTS.md` as a thin bridge
 for Codex. Never rewrite `CLAUDE.md` itself unless the user explicitly asks.
 
@@ -47,8 +50,8 @@ needed.
 
 Naming and path rules (zero-padded `-codex-NN` suffix, base filename
 preservation, `docs/ai/phases/codex/` target dir): see
-`references/output-and-split.md`. Rewrite descriptive prose into imperative
-instructions and strip vague/deferred wording per
+`references/output-and-split.md`. Contract the scope — goal, exact
+`NEW`/`MODIFY` file list, excluded work, ordered steps — per
 `references/rewrite-rules.md`. Structure each generated document exactly
 per `references/document-template.md`.
 

@@ -11,7 +11,7 @@ docs(ssot): #<PR#> 역공학 — <PR title (truncated to 60 chars, ellipsis if c
 ```
 
 The `docs(ssot):` prefix signals that the issue tracks SSOT / contract
-recovery, not new feature work. Downstream `/gh-issue-flow` uses this
+recovery, not new feature work. Downstream `/gh-flow:issue` uses this
 prefix to route the implementation into docs-only PRs.
 
 ## Body skeleton
@@ -59,7 +59,7 @@ PR 작성자: @<author>
 
 <One AC per non-empty gap section. Drop ACs for sections that returned `(none)`.>
 
-- [ ] A. Glossary — <gap 요약> 을 `docs/.ssot/glossary.md` (또는 적절한 위치) 에 반영
+- [ ] A. Glossary — <gap 요약> 을 glossary docs (예: `docs/.ssot/glossary.md`) 에 반영
 - [ ] B. API 계약 — <gap 요약> 을 OpenAPI / GraphQL 스펙에 반영
 - [ ] C. Data Models — <gap 요약> 을 데이터 모델 docs 에 반영
 - [ ] D. Deployment — <gap 요약> 을 runbook / deployment docs 에 반영
@@ -69,7 +69,7 @@ PR 작성자: @<author>
 
 - 원본 PR 의 runtime 코드 변경 (이미 머지/리뷰 완료).
 - 신규 기능 추가 — 본 이슈는 **SSOT 동기화** 만 다룬다.
-- Sister `/devx:exception-merge-checklist` 가 다루는 merge-gate 검증
+- Sister `/gh-verify:exception-merge-checklist` 가 다루는 merge-gate 검증
   (별도 이슈).
 
 ## 5. Parent / Related
@@ -91,8 +91,8 @@ PR 작성자: @<author>
 
 ## 7. TODO 후속
 
-- [ ] AC 별 docs-only PR 작성 (`/gh-issue-flow <이 이슈 번호>` 권장)
-- [ ] Sister exit-skill `/devx:exception-merge-checklist` 가 정식 등록되면
+- [ ] AC 별 docs-only PR 작성 (`/gh-flow:issue <이 이슈 번호>` 권장)
+- [ ] Sister exit-skill `/gh-verify:exception-merge-checklist` 가 정식 등록되면
       본 이슈에 link
 - [ ] (선택) 회고: 어떤 onboarding 자료가 있었다면 PR-first 사고를 막을
       수 있었을지

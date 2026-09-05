@@ -5,6 +5,7 @@ description: >-
   SSOT 추적 이슈로 등록한다. Use for /spec-flow:pr-to-ssot-issue,
   "예외 PR 을 SSOT 이슈로", "이 PR 의 PRD 갭을 이슈로 등록",
   "reverse-engineer this merged PR into a tracking issue".
+license: MIT
 allowed-tools: Bash, Read, Edit, Write, Grep, Agent
 metadata:
   model_recommendation:
@@ -83,9 +84,9 @@ See `references/constraints.md` for the full list. Highlights:
   `gh pr edit/comment/review`. Never auto-create labels or milestones.
   Fail-closed on overlap / empty-gap / unknown-remote. Respect
   `GH_DISABLE_AI_METRICS=1`. No automatic rollback on mid-flow
-  failure. No auto-chaining to `/gh-issue-flow`.
+  failure. No auto-chaining to `/gh-flow:issue`.
 
 ## Related Skills
 
-`/devx:exception-merge-checklist` — entry-side recovery (this skill) +
+`/gh-verify:exception-merge-checklist` — entry-side recovery (this skill) +
 exit-side gate (sister) together form the exception-PR roundtrip.

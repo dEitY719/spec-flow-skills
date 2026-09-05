@@ -5,6 +5,7 @@ description: >-
   /spec-flow:reverse-engineering-analysis, "이 기능 어떻게 동작하는지 분석해줘",
   "graph 기능 뜯어서 프롬프트로 만들어줘",
   "reverse engineer this feature into a reusable AI prompt".
+license: MIT
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 metadata:
   model_recommendation:

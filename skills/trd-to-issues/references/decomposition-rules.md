@@ -36,7 +36,7 @@ Exactly one of the size labels per Task:
 
 When the metrics are borderline but the context (TRD section, single
 file family, well-defined contract) makes single-session completion
-clear, prefer `pro-friendly` — see issue #433 for the original
+clear, prefer `pro-friendly` — see dEitY719/dotfiles#433 for the original
 guidance.
 
 Priority labels (`⚡ High`, `🔥 Urgent`, etc.) are **lifted from the
@@ -47,8 +47,8 @@ additive — they do not replace the size label.
 
 - **Never auto-create labels.** If a label referenced by the plan is
   missing on the target repo at `--apply` time, stop with the missing
-  list. Reason: `feedback_gh_label_no_autocreate.md` — POST `/labels`
-  silently creates the label, polluting the repo's label namespace.
+  list. Reason: POST `/labels` silently creates the label, polluting the
+  repo's label namespace.
 - **Never collapse "Decomposition failures" into the main task list.**
   A failure is a signal that the user must split or rewrite the TRD
   section; hiding it defeats the purpose of dry-run review.

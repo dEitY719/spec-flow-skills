@@ -28,8 +28,8 @@ TRD 여러 개를 한 번에 넘기면 합집합으로 처리한다.
 **안 쓴다:**
 
 - 아직 TRD 가 없고 PRD 만 있을 때 → `prd-to-trd` 로 스캐폴드부터 만든다.
-- 이슈 **한 건**만 필요할 때 → 대량 분해는 과하다. `gh:issue-create` 를 쓴다.
-- 이슈를 실제로 구현하고 싶을 때 → `gh:issue-implement` / `gh:issue-flow`.
+- 이슈 **한 건**만 필요할 때 → 대량 분해는 과하다. `gh-issue:create` 를 쓴다.
+- 이슈를 실제로 구현하고 싶을 때 → `gh-issue:implement` / `gh-flow:issue`.
 
 ## 호출 형식
 
@@ -78,5 +78,5 @@ TRD 여러 개를 한 번에 넘기면 합집합으로 처리한다.
 
 ## 이어지는 스킬
 
-`prd-to-trd` — 이전 단계(PRD → TRD 스캐폴드). `gh:issue-flow` — 등록된 Task 이슈를
+`prd-to-trd` — 이전 단계(PRD → TRD 스캐폴드). `gh-flow:issue` — 등록된 Task 이슈를
 받아 구현부터 PR 까지 진행한다.

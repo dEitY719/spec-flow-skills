@@ -48,7 +48,7 @@
 - **D-2** — Pages 절대 URL 의 owner 부분은 **소문자로 정규화**한다
   (`dEitY719` → `deity719`). GitHub Pages 호스트명은 대문자를 허용하지 않아
   원문 owner 를 그대로 쓰면 전 링크가 404 가 된다.
-- **D-3** — HTML 은 `/devx:visualize` 로 md 하나당 한 번씩 생성한다. 수작업
+- **D-3** — HTML 은 `/visuals:visualize` 로 md 하나당 한 번씩 생성한다. 수작업
   HTML 편집과 일괄 변환 스크립트는 모두 금지한다.
 - **D-4** — worked example 의 입력과 산출물은 `docs/examples/<skill>/` 아래에
   repo 에 보존한다. gitignore 하지 않는다. 문서가 링크하는 결과물이 실재해야
