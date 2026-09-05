@@ -20,8 +20,10 @@ Detailed substeps for the issue creation phase.
    Guard it: `command -v claude-set-issue-status >/dev/null` first. The
    helper ships with `dEitY719/dotfiles`, not with this repo, so when it is
    absent emit one `[WARN] claude-set-issue-status not installed — Ready
-   promotion skipped` and finish normally. Never abort here: milestones and
-   issues already exist by this point and there is no rollback.
+   promotion skipped` and finish normally. Repeat that `[WARN]` in the Step 5
+   report so a default `--apply` run never reads as "first milestone promoted"
+   when nothing was promoted. Never abort here: milestones and issues already
+   exist by this point and there is no rollback.
 
 Mid-flow failure: report partial state (created milestones / issues so
 far), emit `[FAIL] spec-flow:trd-to-issues <reason>`, and stop — no automatic
