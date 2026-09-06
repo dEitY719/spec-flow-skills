@@ -127,6 +127,33 @@ esac
 [ "$(find "$WORK/partial" -maxdepth 1 -name '*.md' -type f | wc -l)" -eq 3 ] \
     || fail "render: no auto-rollback — the 3 scaffolds written before the failure must remain"
 
+# --- render: an edited slug cannot escape the output directory -------------
+python3 - "$WORK/rows.json" "$WORK/escape.json" <<'ESCAPE'
+import json, sys
+rows = json.load(open(sys.argv[1], encoding="utf-8"))
+rows[0]["slug"] = "../../outside"
+json.dump(rows, open(sys.argv[2], "w", encoding="utf-8"), ensure_ascii=False)
+ESCAPE
+mkdir -p "$WORK/escape"
+if out=$(python3 "$PLAN_PY" render --rows "$WORK/escape.json" \
+    --template "$ROOT/skills/prd-to-trd/references/template-fallback.md" \
+    --out-dir "$WORK/escape" --prd "$EXAMPLE/prd-docs-pages.md" 2>&1); then
+    fail "render: a traversal slug must be refused"
+fi
+case "$out" in
+    *"not kebab-case"*) : ;;
+    *) fail "render: expected a kebab-case refusal, got: ${out}" ;;
+esac
+[ -e "$WORK/outside.md" ] && fail "render: wrote outside the out-dir"
+
+# --- render: a project template that drifted from the standard warns --------
+sed '/^## 8\. Open Questions$/,$d' "$EXAMPLE/trd/ci-gate.md" >"$WORK/_template.md"
+python3 "$PLAN_PY" render --rows "$WORK/rows.json" \
+    --template "$WORK/_template.md" --out-dir "$WORK/drift" \
+    --prd "$EXAMPLE/prd-docs-pages.md" 2>"$WORK/drift.err" >/dev/null
+grep -q 'numbered sections (expected 8)' "$WORK/drift.err" \
+    || fail "render: a 7-section project template must warn, got: $(cat "$WORK/drift.err")"
+
 # --- render: skip-on-exists is the default, --force is the only override ----
 python3 "$PLAN_PY" render --rows "$WORK/rows.json" \
     --template "$ROOT/skills/prd-to-trd/references/template-fallback.md" \

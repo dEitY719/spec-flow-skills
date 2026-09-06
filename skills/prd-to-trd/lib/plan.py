@@ -38,6 +38,7 @@ SLUG_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 # A malformed id ("F7", "NF-", "X-1") is a typo the parser can and does catch.
 ITEM_RE = {"F": re.compile(r"^F-\d+$"), "D": re.compile(r"^D-\d+$"), "NF": re.compile(r"^NF-\d+$")}
 PLACEHOLDER_RE = re.compile(r"\{\{([a-z0-9-]+)\}\}")
+FRONTMATTER_SLOTS = ["상태", "책임 PRD 항목", "인용 NF", "소유자", "인접 TRD"]
 
 
 class PlanError(Exception):
@@ -152,13 +153,22 @@ def parse(path):
 def _template_body(path):
     """A project `_template.md` is used raw; the bundled fallback's fenced block is extracted."""
     text = pathlib.Path(path).read_text(encoding="utf-8")
-    if "## Verbatim template" not in text:
-        return text
-    after = text.split("## Verbatim template", 1)[1]
-    m = re.search(r"^```[a-z]*\n(.*?)^```", after, re.S | re.M)
-    if not m:
-        sys.exit(f"[FAIL] {path}: '## Verbatim template' has no fenced block")
-    return m.group(1)
+    if "## Verbatim template" in text:
+        after = text.split("## Verbatim template", 1)[1]
+        m = re.search(r"^```[a-z]*\n(.*?)^```", after, re.S | re.M)
+        if not m:
+            sys.exit(f"[FAIL] {path}: '## Verbatim template' has no fenced block")
+        text = m.group(1)
+    # A project template is the SSOT and may legitimately differ, so drift from
+    # the agent-toolbox 8-section standard warns rather than fails — but it is
+    # never silent: an unnoticed 9th section lands in every scaffold it renders.
+    sections = len(re.findall(r"^## \d+\. ", text, re.M))
+    slots = [s for s in FRONTMATTER_SLOTS if f"**{s}**" not in text]
+    if sections != 8 or slots:
+        print(f"[WARN] {path}: {sections} numbered sections (expected 8)"
+              + (f", missing frontmatter slot(s) {slots}" if slots else "")
+              + " — see references/template-fallback.md", file=sys.stderr)
+    return text
 
 
 def _project_name(prd_path, override):
@@ -196,6 +206,11 @@ def render(rows, template, out_dir, prd, project, force):
 
     written = skipped = 0
     for row in rows:
+        # The rows JSON is hand-editable between `parse` and `render`, so this
+        # is not a re-check of parse's work: it is the only guard on the write
+        # path. constraints.md -> "Never write outside <prd-dir>/trd/".
+        if not SLUG_RE.match(str(row.get("slug", ""))):
+            abort(f"slug {row.get('slug')!r} is not kebab-case — refusing to write outside {out}")
         target = out / f"{row['slug']}.md"
         if target.exists() and not force:
             print(f"[INFO] skip existing: {target}")

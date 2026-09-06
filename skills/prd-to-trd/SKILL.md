@@ -62,9 +62,10 @@ Run with --apply to write TRD scaffolds.
 
 ## Step 4: Apply (only if `--apply`)
 
-Resolve the bundled helper via `$CLAUDE_PLUGIN_ROOT` (Claude Code sets
-it; on any other harness export the directory this `SKILL.md` was read
-from). Unset → stop and say so; never guess a path.
+Resolve the bundled helper via `$CLAUDE_PLUGIN_ROOT` — the **plugin
+root** (the directory holding `skills/`), not this file's own directory.
+Claude Code sets it; elsewhere export the `SKILL.md` path minus its
+`skills/prd-to-trd/SKILL.md` suffix. Unset → stop; never guess a path.
 
 ```bash
 LIB="$CLAUDE_PLUGIN_ROOT/skills/prd-to-trd/lib/plan.py"
