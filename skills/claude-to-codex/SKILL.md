@@ -28,9 +28,8 @@ for Codex. Never rewrite `CLAUDE.md` itself unless the user explicitly asks.
 ## Help
 
 If arg #1 is `-h`, `--help`, or `help`, or the user explicitly asks how to
-use this skill, read `references/help.md` and output its content verbatim,
-then stop. A normal conversion request is not a help request. No API calls,
-no file mutation.
+use this skill (a conversion request is not one), read `references/help.md`
+and output its content verbatim, then stop. No API calls, no file mutation.
 
 ## Step 1: Read Inputs
 
