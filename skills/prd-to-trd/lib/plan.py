@@ -37,7 +37,7 @@ SLUG_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 # constraints.md -> "Plan is the SSOT" makes --apply read the plan, not the PRD.
 # A malformed id ("F7", "NF-", "X-1") is a typo the parser can and does catch.
 ITEM_RE = {"F": re.compile(r"^F-\d+$"), "D": re.compile(r"^D-\d+$"), "NF": re.compile(r"^NF-\d+$")}
-PLACEHOLDER_RE = re.compile(r"\{\{([a-z0-9-]+)\}\}")
+PLACEHOLDER_RE = re.compile(r"\{\{([A-Za-z0-9_-]+)\}\}")
 FRONTMATTER_SLOTS = ["상태", "책임 PRD 항목", "인용 NF", "소유자", "인접 TRD"]
 
 
@@ -212,6 +212,12 @@ def render(rows, template, out_dir, prd, project, force):
         if not SLUG_RE.match(str(row.get("slug", ""))):
             abort(f"slug {row.get('slug')!r} is not kebab-case — refusing to write outside {out}")
         target = out / f"{row['slug']}.md"
+        # A symlink here writes through to wherever it points, which defeats
+        # the kebab-case guard above: `--force` would clobber a file outside
+        # `out`. Refuse rather than resolve — nothing legitimately symlinks a
+        # scaffold. (codex review, PR #9)
+        if target.is_symlink():
+            abort(f"{target} is a symlink — refusing to write outside {out}")
         if target.exists() and not force:
             print(f"[INFO] skip existing: {target}")
             skipped += 1

@@ -62,9 +62,11 @@ sed 's/^| ci-gate |.*$/&\n| extra-slug | F-99 | (none) | (none) | (none) | nowhe
 reject "dangling 인접 TRD" "$WORK/dangling.md" "not a slug in this plan"
 
 # 3. a reordered section heading
-sed 's/^## Suggested splits$/## Manual review/; s/^## Manual review$/## Suggested splits/' \
+# The swap needs a placeholder: two chained `s///` would rewrite the first
+# heading twice and leave the file with two `## Suggested splits`.
+sed 's/^## Suggested splits$/## \x01/; s/^## Manual review$/## Suggested splits/; s/^## \x01$/## Manual review/' \
     "$EXAMPLE/plan.md" >"$WORK/reordered.md"
-reject "reordered sections" "$WORK/reordered.md" "order"
+reject "reordered sections" "$WORK/reordered.md" "must appear in the order"
 
 # 4. a renamed table column
 sed 's/| NF-# (primary) |/| NF-primary |/' "$EXAMPLE/plan.md" >"$WORK/column.md"
@@ -166,5 +168,21 @@ python3 "$PLAN_PY" render --rows "$WORK/rows.json" \
     --out-dir "$WORK/trd" --prd "$EXAMPLE/prd-docs-pages.md" --force >"$WORK/forced.out"
 grep -q '^written=8 skipped=0$' "$WORK/forced.out" \
     || fail "render --force: expected written=8, got $(tail -n1 "$WORK/forced.out")"
+
+# --- render --force: a symlinked target must not be written through --------
+mkdir -p "$WORK/link"
+echo original >"$WORK/victim.md"
+ln -s "$WORK/victim.md" "$WORK/link/$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8"))[0]["slug"])' "$WORK/rows.json").md"
+if out=$(python3 "$PLAN_PY" render --rows "$WORK/rows.json" --force \
+    --template "$ROOT/skills/prd-to-trd/references/template-fallback.md" \
+    --out-dir "$WORK/link" --prd "$EXAMPLE/prd-docs-pages.md" 2>&1); then
+    fail "render --force: a symlinked target must be refused"
+fi
+case "$out" in
+    *"is a symlink"*) : ;;
+    *) fail "render --force: expected a symlink refusal, got: ${out}" ;;
+esac
+[ "$(cat "$WORK/victim.md")" = original ] \
+    || fail "render --force: wrote through a symlink, outside the out-dir"
 
 echo "ok    prd-to-trd plan.py: parse invariants + render round-trip"
