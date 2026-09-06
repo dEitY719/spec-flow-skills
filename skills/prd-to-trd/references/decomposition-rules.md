@@ -16,10 +16,8 @@ matching the agent-toolbox convention (mega-TRD forbidden).
 3. **PRD §5 `NF-#` (Non-functional)** — assign each `NF-#` to its
    highest-impact TRD as the primary, **at most one per TRD**. When
    the PRD has fewer `NF-#` items than TRDs, the leftover TRDs land
-   with `(none)` in the `NF-# (primary)` column — never duplicate or
-   synthesize an NF item to fill a slot (collides with
-   "Never invent PRD items" below). Cross-citation on adjacent TRDs
-   is allowed; redefinition is not (NF-# is PRD-owned).
+   with `(none)` in the `NF-# (primary)` column. Cross-citation on
+   adjacent TRDs is allowed; redefinition is not (NF-# is PRD-owned).
 4. **Adjacent-TRD pairs** — slugs that share an explicit contract
    (data schema, API surface, event topic) get a bidirectional
    `인접 TRD` entry in their frontmatter.
@@ -79,6 +77,6 @@ the plan to fill each TRD's frontmatter.
 
 ## Pairs with
 
-- `references/plan-format.md` — exact skeleton for the plan + scaffold.
+- `references/plan-format.md` — exact skeleton for the plan.
 - `references/template-fallback.md` — TRD scaffold contents when
   `<prd-dir>/trd/_template.md` is missing.

@@ -43,21 +43,17 @@ item, and adjacent-TRD pairs that share a contract.
 PRDs with fewer than 2 viable groups → `[WARN] PRD too small —
 single mega-TRD refused. Add more F-#/D-# or split.` and stop.
 
-Locate the TRD template: search `<prd-dir>/trd/_template.md` first;
-on miss, fall back to `references/template-fallback.md`. Both sources
-missing → `[FAIL] template unavailable` + exit 1. Either template is the
-agent-toolbox **8-section standard**: AI Spec-Driven 6 sections (AWS
-Kiro / Spec Kit / Cursor) + Google Design Doc 2 sections (Goals /
-Non-Goals, Alternatives Considered).
+Locate the TRD template: search `<prd-dir>/trd/_template.md` first; on
+miss, fall back to `references/template-fallback.md`, which also states
+the agent-toolbox **8-section standard** both must follow. Both sources
+missing → `[FAIL] template unavailable` + exit 1.
 
 ## Step 3: Write Plan
 
-Write the decomposition to `--plan-out` using
-`references/plan-format.md` as the canonical skeleton. The plan is
-the single review surface — the user edits slugs and mappings, then
-re-invokes with `--apply`.
-
-In `--dry-run` (default), **stop here** and print:
+Write the decomposition to `--plan-out` using `references/plan-format.md`
+as the canonical skeleton — the single review surface; the user edits
+slugs and mappings, then re-invokes with `--apply`. In `--dry-run`
+(default), **stop here** and print:
 
 ```
 Plan written: <plan-out> (<n> components)
@@ -66,24 +62,28 @@ Run with --apply to write TRD scaffolds.
 
 ## Step 4: Apply (only if `--apply`)
 
-1. **Re-read plan** — round-trip the user-edited plan from
-   `--plan-out`. Missing plan → stop with
-   `[FAIL] plan not found at <path> — run --dry-run first`.
-2. **For each component slug** — resolve `<prd-dir>/trd/<slug>.md`.
-   - File exists + no `--force` → `[INFO] skip existing: <path>`
-     and continue (idempotent).
-   - Otherwise → render the template with frontmatter (책임 PRD
-     항목, 인접 TRD, 소유자 placeholder) and write the 8-section
-     scaffold per `references/plan-format.md` → "Scaffold layout" —
-     headers + guidance blockquotes only, **never an AI-drafted body**.
-3. `mkdir -p <prd-dir>/trd/` if needed (never above `<prd-dir>`).
+Resolve the bundled helper via `$CLAUDE_PLUGIN_ROOT` (Claude Code sets
+it; on any other harness export the directory this `SKILL.md` was read
+from). Unset → stop and say so; never guess a path.
 
-Mid-flow write failure → report partial state (slugs written so far),
-emit `[FAIL] spec-flow:prd-to-trd <reason>` + exit 1. **No auto-rollback.**
+```bash
+LIB="$CLAUDE_PLUGIN_ROOT/skills/prd-to-trd/lib/plan.py"
+python3 "$LIB" parse "<plan-out>" > "<plan-out>.rows.json"
+python3 "$LIB" render --rows "<plan-out>.rows.json" --template "<template>" \
+    --out-dir "<prd-dir>/trd" --prd "<prd-path>" [--force]
+```
+
+`parse` enforces `references/plan-format.md`'s round-trip invariants and
+exits 1 naming the offending line; a missing plan is `[FAIL] plan not
+found at <path> — run --dry-run first`. `render` substitutes the
+`{{...}}` placeholders of `references/template-fallback.md`, skips an
+existing scaffold unless `--force`, creates `<prd-dir>/trd/` and nothing
+above it, and prints `written=<n> skipped=<n>`; give a row a `"title"`
+when the title-cased slug is wrong (`ci-gate` -> `CI Gate`). On a
+mid-flow failure report the slugs written so far, emit
+`[FAIL] spec-flow:prd-to-trd <reason>` + exit 1. **No auto-rollback.**
 
 ## Step 5: Report
-
-Print the verdict:
 
 ```
 [OK] spec-flow:prd-to-trd plan=<path> components=<n> [scaffolds=<n> skipped=<n>]
