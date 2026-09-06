@@ -77,6 +77,11 @@ reject "renamed column" "$WORK/column.md" "table header"
 sed 's/| ci-gate | F-12,F-13 |/| ci-gate | F12,F-13 |/' "$EXAMPLE/plan.md" >"$WORK/itemid.md"
 reject "malformed item id" "$WORK/itemid.md" "malformed PRD item id"
 
+# 6. a one-sided 인접 TRD edit
+sed 's/| skill-inventory,link-validation |/| skill-inventory |/' \
+    "$EXAMPLE/plan.md" >"$WORK/oneway.md"
+reject "one-sided 인접 TRD" "$WORK/oneway.md" "must be bidirectional"
+
 # --- render: the example plan reproduces the committed scaffold ------------
 python3 "$PLAN_PY" render \
     --rows "$WORK/rows.json" \
