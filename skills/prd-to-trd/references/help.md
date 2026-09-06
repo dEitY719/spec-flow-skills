@@ -61,7 +61,7 @@
   + guidance blockquotes only. The 500-800 line body is human work
   (agent-toolbox "AI 범위 폭주 차단" convention).
 - Modify the PRD — input only. PRD gaps are reported, not patched.
-- Create GitHub Issues / Milestones — that is [[spec-flow:trd-to-issues]].
+- Create GitHub Issues / Milestones — that is `spec-flow:trd-to-issues`.
 - Generate a single mega-TRD — agent-toolbox `_template.md` forbids
   it. PRDs too small to split into ≥ 2 components are refused.
 - Write outside `<prd-dir>/trd/` — output is path-scoped to the PRD's
@@ -78,7 +78,7 @@
 
 ## Pairs with
 
-- [[spec-flow:trd-to-issues]] — the **next** step. Takes the TRDs this
+- `spec-flow:trd-to-issues` — the **next** step. Takes the TRDs this
   skill scaffolds (after a human fills them in) and decomposes them
   into GitHub Milestones + Issues.
 - `gh-issue:create` — single-issue alternative when batch

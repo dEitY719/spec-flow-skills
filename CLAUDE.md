@@ -39,6 +39,8 @@ single flat `./skills/` directory:
 .agents/plugins/marketplace.json           Antigravity
 gemini-extension.json + GEMINI.md          Gemini CLI
 skills/<name>/SKILL.md                     the skills themselves
+skills/<name>/lib/*.py                     that skill's bundled helpers
+tests/*.sh                                 repo self-checks, run by CI
 ```
 
 Only Claude Code understands the nested mono layout. The other five harnesses
@@ -46,9 +48,15 @@ resolve manifests at the repo root and a skills tree at `./skills/`, so nesting
 would silently cut this plugin down to Claude-Code-only. **Do not move the
 manifests under a `plugins/` directory.**
 
+`tests/*.sh` are the repo's own gate — CI runs every one of them, and
+`bash tests/<name>.sh` runs it locally. A skill whose SKILL.md prescribes a
+deterministic procedure (a parser, a placeholder substitution) ships it as a
+helper under its own `lib/` with a `tests/` script beside it, rather than as
+prose an agent re-implements per run.
+
 ## Shared assets live in `harness-skills` — link, never copy
 
-Two things this repo depends on are owned by `dEitY719/harness-skills`
+Three things this repo depends on are owned by `dEitY719/harness-skills`
 (dotfiles #1410 F-5 / D-10):
 
 1. **Per-harness tool mappings** — `references/{codex,kimi,gemini,antigravity,hermes,opencode}-tools.md`.
@@ -59,6 +67,11 @@ Two things this repo depends on are owned by `dEitY719/harness-skills`
 2. **The CI workflow** — `.github/workflows/skill-check.yml`. This repo's
    `validate.yml` calls it with `plugin-name: spec-flow`. Do not re-inline the
    checks here; to change what is checked, open a PR against `harness-skills`.
+3. **The plugin-root convention** — `references/plugin-root.md`. A SKILL.md
+   that invokes a bundled `lib/` helper resolves it through
+   `$CLAUDE_PLUGIN_ROOT` and stops when that is unset; it never falls back to
+   `$PWD`, which for these skills is the repository under review. Do not grow a
+   second idiom here.
 
 ## Rules for changing skills
 

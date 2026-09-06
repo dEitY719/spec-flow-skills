@@ -4,10 +4,12 @@ The skill loads `<prd-dir>/trd/_template.md` first; if absent, it uses
 the verbatim block below. This template is the **agent-toolbox
 8-section standard** (AI Spec-Driven 6 sections — AWS Kiro / Spec Kit
 / Cursor — plus Google Design Doc 2 sections: Goals/Non-Goals,
-Alternatives Considered).
+Alternatives Considered), and it is the **only** copy of the scaffold
+layout in this skill — `references/plan-format.md` owns the plan alone.
 
-Placeholders use `{{...}}` syntax. `--apply` substitutes them from the
-plan's Components table before writing.
+Placeholders use `{{...}}` syntax. `lib/plan.py render` substitutes them
+from the plan's Components table before writing, and refuses to write a
+scaffold that still carries one.
 
 ## Verbatim template
 
@@ -86,12 +88,12 @@ The 5 frontmatter slots above (`상태` / `책임 PRD 항목` / `인용 NF`
 `plan-format.md` → "Plan field rules":
 
 - `책임 PRD 항목` carries `F-#` + `D-#` (both required) plus an
-  optional `NF-#` primary (0 or 1 — never synthesize one to fill the
-  slot; collides with `decomposition-rules.md` → "Never invent PRD
-  items"). When omitted, only `F-#, D-#` appears.
+  optional `NF-#` primary (0 or 1). When omitted, only `F-#, D-#`
+  appears.
 - `인용 NF` is rendered as `(none)` when empty — never blank — so the
   round-trip parser distinguishes "no cites" from "missing slot".
 - `인접 TRD` is rendered as `(none)` when no adjacent slug exists.
+- The PRD link is **relative** — `../{{prd-basename}}`, never absolute.
 
 These notes live **outside** the verbatim template block on purpose:
 the block must be copy-pasteable into a real TRD with no manual
@@ -106,7 +108,8 @@ agent-toolbox convention. This file is the **fallback** that lets
 template. The two must stay structurally compatible: same 8 section
 headings, same frontmatter slots in the same order.
 
-If a project edits its `<prd-dir>/trd/_template.md` to add a 9th
-section or reorder frontmatter, the plan's round-trip parser still
-expects the 8-section layout — re-run with `--force` to overwrite
-existing scaffolds, or update this fallback in lock-step.
+A project `_template.md` is written out as-is with only its `{{...}}`
+placeholders substituted, so a 9th section or a reordered frontmatter
+there lands in every scaffold that template renders — and diverges from
+the ones this fallback rendered earlier. Update the two in lock-step and
+re-run with `--force` to bring existing scaffolds along.
