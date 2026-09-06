@@ -3,8 +3,8 @@
 ## Usage
 
 Apart from `-h` / `--help` / `help`, this skill has no CLI flags — it
-triggers on natural-language requests
-that name reference document(s) plus a target phase document, e.g.:
+triggers on natural-language requests that name reference document(s) plus
+a target phase document, e.g.:
 
 ```
 docs/ai/architecture.md, docs/ai/backend.md, docs/ai/phases/phase-02-x.md를
