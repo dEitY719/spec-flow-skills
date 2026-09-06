@@ -33,6 +33,10 @@ HEADER_FIELDS = ["Generated:", "Source PRD:", "PRD directory:", "Mode:", "Templa
 SECTIONS = ["## Components", "## Suggested splits", "## Manual review"]
 NONE = "(none)"
 SLUG_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+# Shape only. Whether F-7 exists in the PRD is deliberately NOT checked here:
+# constraints.md -> "Plan is the SSOT" makes --apply read the plan, not the PRD.
+# A malformed id ("F7", "NF-", "X-1") is a typo the parser can and does catch.
+ITEM_RE = {"F": re.compile(r"^F-\d+$"), "D": re.compile(r"^D-\d+$"), "NF": re.compile(r"^NF-\d+$")}
 PLACEHOLDER_RE = re.compile(r"\{\{([a-z0-9-]+)\}\}")
 
 
@@ -50,13 +54,18 @@ def _cells(row):
     return [c.strip() for c in row.strip().strip("|").split("|")]
 
 
-def _items(cell, line, column):
-    """`(none)` sentinel -> [], otherwise comma-separated items."""
+def _items(cell, line, column, kind=None):
+    """`(none)` sentinel -> [], otherwise comma-separated items, shape-checked."""
     if cell == NONE:
         return []
     if not cell:
         raise PlanError(line, f"{column} is blank — use the {NONE} sentinel, never an empty cell")
-    return [x.strip() for x in cell.split(",") if x.strip()]
+    items = [x.strip() for x in cell.split(",") if x.strip()]
+    if kind:
+        bad = [x for x in items if not ITEM_RE[kind].match(x)]
+        if bad:
+            raise PlanError(line, f"{column} holds malformed PRD item id(s) {bad} — expected {kind}-<n>")
+    return items
 
 
 def parse(path):
@@ -113,17 +122,21 @@ def parse(path):
         if slug in slugs:
             raise PlanError(line, f"duplicate slug {slug!r} — one row per slug")
         slugs.add(slug)
-        nf_primary = _items(cells[3], line, COLUMNS[3])
+        nf_primary = _items(cells[3], line, COLUMNS[3], "NF")
         if len(nf_primary) > 1:
             raise PlanError(line, f"NF-# (primary) holds at most one item, got {nf_primary}")
         rows.append(
             {
                 "slug": slug,
-                "f_items": _items(cells[1], line, COLUMNS[1]),
-                "d_items": _items(cells[2], line, COLUMNS[2]),
+                "f_items": _items(cells[1], line, COLUMNS[1], "F"),
+                "d_items": _items(cells[2], line, COLUMNS[2], "D"),
                 "nf_primary": nf_primary[0] if nf_primary else None,
-                "nf_cited": _items(cells[4], line, COLUMNS[4]),
+                "nf_cited": _items(cells[4], line, COLUMNS[4], "NF"),
                 "adjacent": _items(cells[5], line, COLUMNS[5]),
+                # The plan has no title column, so the default is the
+                # title-cased slug. Edit this field before `render` when the
+                # component name is an acronym (ci-gate -> "CI Gate").
+                "title": _default_title(slug),
                 "_line": line,
             }
         )
@@ -158,8 +171,8 @@ def _project_name(prd_path, override):
     sys.exit(f"[FAIL] {prd_path}: no `# ` title to derive the project name from — pass --project")
 
 
-def _title(row):
-    return row.get("title") or " ".join(w.capitalize() for w in row["slug"].split("-"))
+def _default_title(slug):
+    return " ".join(w.capitalize() for w in slug.split("-"))
 
 
 def render(rows, template, out_dir, prd, project, force):
@@ -168,7 +181,18 @@ def render(rows, template, out_dir, prd, project, force):
     prd_basename = pathlib.Path(prd).name
     today = datetime.date.today().isoformat()
     out = pathlib.Path(out_dir)
-    out.mkdir(parents=True, exist_ok=True)
+    done = []
+
+    def abort(reason):
+        # SKILL.md Step 4: report the slugs written so far, then [FAIL].
+        # No auto-rollback — the written scaffolds stay on disk.
+        print(f"[INFO] written so far: {', '.join(done) or '(none)'}")
+        sys.exit(f"[FAIL] spec-flow:prd-to-trd {reason}")
+
+    try:
+        out.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        abort(str(e))
 
     written = skipped = 0
     for row in rows:
@@ -181,7 +205,7 @@ def render(rows, template, out_dir, prd, project, force):
         if row["nf_primary"]:
             responsible.append(row["nf_primary"])
         values = {
-            "component-title": _title(row),
+            "component-title": row.get("title") or _default_title(row["slug"]),
             "project-name": project,
             "iso-date": today,
             "responsible-prd-items": ", ".join(responsible) or NONE,
@@ -193,8 +217,12 @@ def render(rows, template, out_dir, prd, project, force):
         text = PLACEHOLDER_RE.sub(lambda m: values.get(m.group(1), m.group(0)), body)
         left = PLACEHOLDER_RE.findall(text)
         if left:
-            sys.exit(f"[FAIL] {target}: unsubstituted placeholder(s) {sorted(set(left))}")
-        target.write_text(text, encoding="utf-8")
+            abort(f"{target}: unsubstituted placeholder(s) {sorted(set(left))}")
+        try:
+            target.write_text(text, encoding="utf-8")
+        except OSError as e:
+            abort(f"{target}: {e}")
+        done.append(row["slug"])
         written += 1
     print(f"written={written} skipped={skipped}")
 

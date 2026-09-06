@@ -78,10 +78,10 @@ exits 1 naming the offending line; a missing plan is `[FAIL] plan not
 found at <path> — run --dry-run first`. `render` substitutes the
 `{{...}}` placeholders of `references/template-fallback.md`, skips an
 existing scaffold unless `--force`, creates `<prd-dir>/trd/` and nothing
-above it, and prints `written=<n> skipped=<n>`; give a row a `"title"`
-when the title-cased slug is wrong (`ci-gate` -> `CI Gate`). On a
-mid-flow failure report the slugs written so far, emit
-`[FAIL] spec-flow:prd-to-trd <reason>` + exit 1. **No auto-rollback.**
+above it, and prints `written=<n> skipped=<n>`. Edit a row's `"title"`
+between the two commands when the slug-derived default is wrong
+(`ci-gate` -> `CI Gate`). A mid-flow write failure reports the slugs
+written so far, then `[FAIL]` + exit 1 — **no auto-rollback.**
 
 ## Step 5: Report
 
