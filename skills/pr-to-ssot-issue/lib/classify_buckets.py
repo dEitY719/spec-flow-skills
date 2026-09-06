@@ -64,8 +64,8 @@ def _glob_to_regex(pattern):
 
     Supports the subset actually used by BUCKET_PATTERNS: `**/` (zero or more
     leading path segments), bare `**` (any span, slashes included), `*`
-    (any span within one segment), `?` (one char within one segment), and
-    `{a,b,c}` brace alternation.
+    (any span within one segment), and `{a,b,c}` brace alternation. No `?`
+    wildcard — no pattern in the table below needs one.
     """
     out = ["^"]
     i, n = 0, len(pattern)
@@ -79,11 +79,10 @@ def _glob_to_regex(pattern):
         elif pattern[i] == "*":
             out.append("[^/]*")
             i += 1
-        elif pattern[i] == "?":
-            out.append("[^/]")
-            i += 1
         elif pattern[i] == "{":
-            j = pattern.index("}", i)
+            j = pattern.find("}", i)
+            if j == -1:
+                raise ValueError(f"unclosed '{{' in bucket pattern: {pattern!r}")
             options = pattern[i + 1 : j].split(",")
             out.append("(?:" + "|".join(re.escape(o) for o in options) + ")")
             i = j + 1
@@ -94,14 +93,24 @@ def _glob_to_regex(pattern):
     return re.compile("".join(out))
 
 
-_COMPILED = [(bucket, [_glob_to_regex(p) for p in patterns]) for bucket, patterns in BUCKET_PATTERNS]
+# A pattern with no "/" (e.g. `*.sql`, `Dockerfile*`) is a basename glob —
+# it must match at any depth (`services/api.sql`), not just at repo root.
+# A pattern with a "/" (e.g. `migrations/**`, `.github/workflows/**`) is
+# rooted and matches the full path. Same distinction gitignore/find -name
+# draw between a bare pattern and a path pattern.
+_COMPILED = [
+    (bucket, [(_glob_to_regex(p), "/" not in p) for p in patterns])
+    for bucket, patterns in BUCKET_PATTERNS
+]
 
 
 def classify(path):
     """Return the bucket name for one file path."""
+    basename = path.rsplit("/", 1)[-1]
     for bucket, regexes in _COMPILED:
-        if any(rx.match(path) for rx in regexes):
-            return bucket
+        for rx, basename_only in regexes:
+            if rx.match(basename if basename_only else path):
+                return bucket
     return DEFAULT_BUCKET
 
 
