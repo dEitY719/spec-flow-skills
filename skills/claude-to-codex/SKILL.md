@@ -27,15 +27,18 @@ for Codex. Never rewrite `CLAUDE.md` itself unless the user explicitly asks.
 
 ## Help
 
-If the user asks for help/usage, read `references/help.md` and output its
-content verbatim, then stop. No API calls, no file mutation.
+If the user asks for help/usage (`-h`, `--help`, `help`, or a
+natural-language ask), read `references/help.md` and output its content
+verbatim, then stop. No API calls, no file mutation.
 
 ## Step 1: Read Inputs
 
+Stop on error: if a listed reference or the target phase document is
+missing, abort and report the failed step — do not write partial output.
+
 Read every reference document the user listed plus the target phase
-document in one batch (they are independent reads). Scan repo structure
-(`AGENTS.md`, `CLAUDE.md`) for context the transformed document should
-preserve.
+document. Scan repo structure (`AGENTS.md`, `CLAUDE.md`) for context the
+transformed document should preserve.
 
 ## Step 2: Decide Single vs Split
 
@@ -58,8 +61,7 @@ per `references/document-template.md`.
 ## Step 4: Sync AGENTS.md
 
 Apply the three-way branch (missing / has `@CLAUDE.md` / missing
-`@CLAUDE.md`) in `references/agents-md-handling.md`. Do not add extra
-Codex policy text to `AGENTS.md` unless the user explicitly requests it.
+`@CLAUDE.md`) in `references/agents-md-handling.md`.
 
 ## Quality bar
 
@@ -79,6 +81,13 @@ Print a concise verdict, then keep any remaining chat response short:
   docs/ai/phases/codex/<base>-codex-01.md (single|slice 1/<n>)
   ...
   AGENTS.md: created | updated (@CLAUDE.md added) | unchanged
+```
+
+On failure, print instead and stop:
+
+```
+[FAIL] spec-flow:claude-to-codex — <reason>
+  Detail: <one-line concrete cause>
 ```
 
 Next: hand the printed Codex prompt block(s) to Codex.
