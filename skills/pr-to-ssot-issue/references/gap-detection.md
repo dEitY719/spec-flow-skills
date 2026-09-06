@@ -6,19 +6,12 @@ and Step 3 ("Subagent Gap Analysis").
 ## Bucket rules
 
 Every file from `gh pr diff <PR#> --name-only` lands in **exactly one**
-of the four buckets below. `lib/classify_buckets.py` implements this
-table (ordered, first-match-wins) as a pure function of the file list, so
-the counts below are reproducible across repeated runs on the same PR
-(resolved via `$CLAUDE_PLUGIN_ROOT`, per `SKILL.md` Step 2):
-
-```
-gh pr diff <PR#> --name-only | python3 "$CLAUDE_PLUGIN_ROOT/skills/pr-to-ssot-issue/lib/classify_buckets.py"
-```
-
-It outputs `{"code": [...], "schema": [...], "infra": [...], "docs":
-[...], "counts": {...}}`. It does **not** implement the two tie-breaks
-below that need diff content or file semantics rather than a filename —
-those stay a subagent / human judgment call.
+of the four buckets below. `lib/classify_buckets.py` (invoked per
+`SKILL.md` Step 2) implements this table (ordered, first-match-wins) as
+a pure function of the file list, so the counts below are reproducible
+across repeated runs on the same PR. It does **not** implement the two
+tie-breaks below that need diff content or file semantics rather than a
+filename — those stay a subagent / human judgment call.
 
 | Bucket | Match patterns (top-to-bottom precedence) | Gap hypothesis (one line) |
 |--------|------------------------------------------|---------------------------|

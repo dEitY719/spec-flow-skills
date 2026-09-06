@@ -56,12 +56,13 @@ repo's label namespace.
 If `--milestone <name>` is set:
 
 ```
-gh api --paginate "repos/{owner}/{repo}/milestones" --repo "$TARGET_REPO" --jq '.[].title'
+gh api --paginate "repos/$TARGET_REPO/milestones" --jq '.[].title'
 ```
 
 `--paginate` covers repos with > 30 milestones (the default page size).
-`gh api`'s `--repo` flag parses both URL and `owner/repo` forms, same
-pattern as `gh-resolve:conflict` Step 5.
+Unlike `gh label list` / `gh issue create`, `gh api` has no `--repo` flag —
+the repo goes in the endpoint path instead, same pattern as
+`gh-resolve:conflict`'s label-removal helper.
 
 Missing → stop with `reason=missing-milestone`. Inherited milestone
 from parent / PR is OK to skip the validation step entirely (the
