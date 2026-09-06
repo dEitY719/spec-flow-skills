@@ -185,4 +185,32 @@ esac
 [ "$(cat "$WORK/victim.md")" = original ] \
     || fail "render --force: wrote through a symlink, outside the out-dir"
 
+# --- render: a symlinked out-dir is refused before anything is written -----
+ln -s "$WORK/elsewhere" "$WORK/linkdir"
+mkdir -p "$WORK/elsewhere"
+if out=$(python3 "$PLAN_PY" render --rows "$WORK/rows.json" \
+    --template "$ROOT/skills/prd-to-trd/references/template-fallback.md" \
+    --out-dir "$WORK/linkdir" --prd "$EXAMPLE/prd-docs-pages.md" 2>&1); then
+    fail "render: a symlinked out-dir must be refused"
+fi
+case "$out" in
+    *"is a symlink"*) : ;;
+    *) fail "render: expected a symlinked out-dir refusal, got: ${out}" ;;
+esac
+[ -z "$(ls -A "$WORK/elsewhere")" ] \
+    || fail "render: wrote through a symlinked out-dir"
+
+# --- render: malformed rows JSON reports [FAIL], not a traceback -----------
+echo 'not json' >"$WORK/bad.json"
+if out=$(python3 "$PLAN_PY" render --rows "$WORK/bad.json" \
+    --template "$ROOT/skills/prd-to-trd/references/template-fallback.md" \
+    --out-dir "$WORK/badout" --prd "$EXAMPLE/prd-docs-pages.md" 2>&1); then
+    fail "render: malformed rows JSON must exit non-zero"
+fi
+case "$out" in
+    *Traceback*) fail "render: malformed rows JSON printed a traceback: ${out}" ;;
+    "[FAIL]"*) : ;;
+    *) fail "render: expected a [FAIL] line, got: ${out}" ;;
+esac
+
 echo "ok    prd-to-trd plan.py: parse invariants + render round-trip"

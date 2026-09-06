@@ -73,18 +73,6 @@ def parse(path):
     text = pathlib.Path(path).read_text(encoding="utf-8")
     lines = text.splitlines()
 
-    # Header block: the five fields, in order, before `## Components`.
-    seen_at = -1
-    for field in HEADER_FIELDS:
-        for i, line in enumerate(lines):
-            if line.startswith(field):
-                if i <= seen_at:
-                    raise PlanError(i + 1, f"header field {field!r} is out of order")
-                seen_at = i
-                break
-        else:
-            raise PlanError(1, f"plan header is missing {field!r}")
-
     # The three sections, in order.
     at = {}
     for section in SECTIONS:
@@ -95,8 +83,21 @@ def parse(path):
     order = [at[s] for s in SECTIONS]
     if order != sorted(order):
         raise PlanError(order[0] + 1, f"sections must appear in the order {SECTIONS}")
-    if at[SECTIONS[0]] < seen_at:
-        raise PlanError(at[SECTIONS[0]] + 1, "## Components must follow the header block")
+
+    # Header block: the five fields, in order, and strictly above `## Components`
+    # — scanning the whole file would let a `Mode:` line inside a table cell or
+    # a Manual-review note stand in for a missing header field. (agy review, PR #9)
+    header = lines[: at[SECTIONS[0]]]
+    seen_at = -1
+    for field in HEADER_FIELDS:
+        for i, line in enumerate(header):
+            if line.startswith(field):
+                if i <= seen_at:
+                    raise PlanError(i + 1, f"header field {field!r} is out of order")
+                seen_at = i
+                break
+        else:
+            raise PlanError(1, f"plan header is missing {field!r} above {SECTIONS[0]!r}")
 
     body = lines[at[SECTIONS[0]] + 1 : at[SECTIONS[1]]]
     offset = at[SECTIONS[0]] + 2  # 1-based line number of body[0]
@@ -203,6 +204,11 @@ def render(rows, template, out_dir, prd, project, force):
         out.mkdir(parents=True, exist_ok=True)
     except OSError as e:
         abort(str(e))
+    # `exist_ok=True` accepts a pre-existing symlink to somewhere else, which
+    # would relocate every scaffold at once — the per-file check below cannot
+    # see it. (codex review, PR #9)
+    if out.is_symlink():
+        abort(f"{out} is a symlink — refusing to write outside the PRD directory")
 
     written = skipped = 0
     for row in rows:
@@ -272,8 +278,12 @@ def main(argv=None):
         except OSError as e:
             sys.exit(f"[FAIL] {e}")
         return
-    raw = sys.stdin.read() if args.rows == "-" else pathlib.Path(args.rows).read_text(encoding="utf-8")
-    render(json.loads(raw), args.template, args.out_dir, args.prd, args.project, args.force)
+    try:
+        raw = sys.stdin.read() if args.rows == "-" else pathlib.Path(args.rows).read_text(encoding="utf-8")
+        rows = json.loads(raw)
+    except (OSError, json.JSONDecodeError) as e:
+        sys.exit(f"[FAIL] {args.rows}: {e}")
+    render(rows, args.template, args.out_dir, args.prd, args.project, args.force)
 
 
 if __name__ == "__main__":
