@@ -84,16 +84,6 @@ Examples:
   Fix: create the label manually (`gh label create ...`), then re-run.
 ```
 
-## Why this shape
-
-- `[OK]` / `[FAIL]` / `[DRY-RUN]` first token — greppable by
-  `gh-flow:issue` and CI dashboards.
-- `reason=<short>` (failures) is a stable enum, not free prose — keeps
-  CI alerting simple.
-- `Buckets:` + `Gaps:` always visible — the human reviewer can confirm
-  the SSOT scope at a glance without opening the issue.
-- `Next:` last — `gh-flow:issue` strips this line when composing.
-
 ## Pairs with
 
 - `SKILL.md` Step 6 — invocation site.

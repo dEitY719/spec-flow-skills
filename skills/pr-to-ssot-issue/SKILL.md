@@ -45,8 +45,11 @@ Preconditions (fail-fast, parallel): (1) `<PR#>` is a positive integer;
 ## Step 2: PR Diff Fetch + 4-Bucket Classification
 
 Fetch PR meta + file list via `gh pr view --json …` and `gh pr diff
---name-only`. Classify files and apply overlap guard per
-[references/gap-detection.md](references/gap-detection.md) "Bucket rules".
+--name-only`, then pipe the file list through the bundled
+`lib/classify_buckets.py` helper (resolved via `$CLAUDE_PLUGIN_ROOT`, see
+[references/gap-detection.md](references/gap-detection.md) "Bucket
+rules") for the bucket table as JSON. Apply the overlap guard per the
+same reference.
 
 ## Step 3: Subagent Gap Analysis
 
