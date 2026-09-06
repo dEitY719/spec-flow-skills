@@ -92,8 +92,6 @@ PR 작성자: @<author>
 ## 7. TODO 후속
 
 - [ ] AC 별 docs-only PR 작성 (`/gh-flow:issue <이 이슈 번호>` 권장)
-- [ ] Sister exit-skill `/gh-verify:exception-merge-checklist` 가 정식 등록되면
-      본 이슈에 link
 - [ ] (선택) 회고: 어떤 onboarding 자료가 있었다면 PR-first 사고를 막을
       수 있었을지
 
@@ -123,18 +121,6 @@ PR 작성자: @<author>
 - **Empty bucket rows** — keep with `0` and `(none)` gap hypothesis.
 - **`<current user>`** — from `git config user.name` or `gh api user
   --jq .login`. Fall back to `(unknown)`.
-
-## Why this section order
-
-1. **Why** before **Scope** — a future reviewer needs the motivation
-   before the bucket table makes sense.
-2. **Subagent gap analysis** lives inside Scope (Section 2) — keeps the
-   "what changed" + "what's now stale" reading together.
-3. **Acceptance Criteria** before **Out of Scope** — the AC list is the
-   actionable surface; Out of Scope is a guardrail.
-4. **Audit** (Section 6) is intentionally **below** AC so the AC list
-   is what the implementer sees first when picking up the issue, but
-   **above** TODO so the audit isn't buried at the bottom.
 
 ## Pairs with
 

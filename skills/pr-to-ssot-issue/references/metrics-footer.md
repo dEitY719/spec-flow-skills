@@ -43,10 +43,8 @@ when the new issue later flows through `/gh-flow:issue`.
 First available source wins, matching the convention used by
 `gh-issue:create`:
 
-1. Explicit `--tokens <N>` override (not currently a CLI flag, but
-   reserved for future use).
-2. Character-sum estimate from the table above.
-3. Fallback: 3 000 (conservative — the SSOT body without a subagent
+1. Character-sum estimate from the table above.
+2. Fallback: 3 000 (conservative — the SSOT body without a subagent
    report still pulls in the PR diff + 8-section template).
 
 ## Backlink comment (parent issue)
