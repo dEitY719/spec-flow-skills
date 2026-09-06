@@ -213,4 +213,17 @@ case "$out" in
     *) fail "render: expected a [FAIL] line, got: ${out}" ;;
 esac
 
+# --- render --force: a hard-linked target must not leak the write ----------
+mkdir -p "$WORK/hard"
+echo original >"$WORK/outsider.md"
+FIRST=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8"))[0]["slug"])' "$WORK/rows.json")
+ln "$WORK/outsider.md" "$WORK/hard/$FIRST.md"
+python3 "$PLAN_PY" render --rows "$WORK/rows.json" --force \
+    --template "$ROOT/skills/prd-to-trd/references/template-fallback.md" \
+    --out-dir "$WORK/hard" --prd "$EXAMPLE/prd-docs-pages.md" >/dev/null \
+    || fail "render --force: a hard-linked target must still render"
+[ "$(cat "$WORK/outsider.md")" = original ] \
+    || fail "render --force: wrote through a hard link, mutating a file outside the out-dir"
+[ -s "$WORK/hard/$FIRST.md" ] || fail "render --force: the scaffold itself was not written"
+
 echo "ok    prd-to-trd plan.py: parse invariants + render round-trip"

@@ -24,6 +24,7 @@ scaffold. Self-check: tests/prd-to-trd-plan.sh.
 import argparse
 import datetime
 import json
+import os
 import pathlib
 import re
 import sys
@@ -228,25 +229,37 @@ def render(rows, template, out_dir, prd, project, force):
             print(f"[INFO] skip existing: {target}")
             skipped += 1
             continue
-        responsible = row["f_items"] + row["d_items"]
-        if row["nf_primary"]:
-            responsible.append(row["nf_primary"])
+        # The rows JSON is hand-editable, so a dropped or retyped field must
+        # land as `[FAIL]`, not a traceback. (codex review, PR #9)
+        try:
+            responsible = list(row["f_items"]) + list(row["d_items"])
+            if row["nf_primary"]:
+                responsible.append(row["nf_primary"])
+            cited, adjacent = list(row["nf_cited"]), list(row["adjacent"])
+        except (KeyError, TypeError) as e:
+            abort(f"row {row['slug']!r}: malformed field — {e}")
         values = {
             "component-title": row.get("title") or _default_title(row["slug"]),
             "project-name": project,
             "iso-date": today,
             "responsible-prd-items": ", ".join(responsible) or NONE,
             "prd-basename": prd_basename,
-            "cited-nf-items": ", ".join(row["nf_cited"]) or NONE,
+            "cited-nf-items": ", ".join(cited) or NONE,
             "owner-placeholder": "<github-handle-placeholder>",
-            "adjacent-trd-slugs": ", ".join(row["adjacent"]) or NONE,
+            "adjacent-trd-slugs": ", ".join(adjacent) or NONE,
         }
         text = PLACEHOLDER_RE.sub(lambda m: values.get(m.group(1), m.group(0)), body)
         left = PLACEHOLDER_RE.findall(text)
         if left:
             abort(f"{target}: unsubstituted placeholder(s) {sorted(set(left))}")
+        # Write-then-rename, not write_text: `rename` replaces the directory
+        # entry inside `out` instead of following it, so a hard link (which no
+        # path check can detect) cannot leak the write to a file outside the
+        # out-dir. (codex review, PR #9)
         try:
-            target.write_text(text, encoding="utf-8")
+            tmp = target.with_name(f".{target.name}.tmp")
+            tmp.write_text(text, encoding="utf-8")
+            os.replace(tmp, target)
         except OSError as e:
             abort(f"{target}: {e}")
         done.append(row["slug"])

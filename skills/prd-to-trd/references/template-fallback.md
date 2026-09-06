@@ -109,7 +109,9 @@ template. The two must stay structurally compatible: same 8 section
 headings, same frontmatter slots in the same order.
 
 A project `_template.md` is written out as-is with only its `{{...}}`
-placeholders substituted, so a 9th section or a reordered frontmatter
-there lands in every scaffold that template renders — and diverges from
+placeholders substituted. Drift from the 8-section shape **warns and
+still renders** — the project template is the SSOT, so `render` is not
+entitled to refuse it — which means a 9th section or a reordered
+frontmatter there lands in every scaffold that template renders — and diverges from
 the ones this fallback rendered earlier. Update the two in lock-step and
 re-run with `--force` to bring existing scaffolds along.
