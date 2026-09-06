@@ -48,7 +48,9 @@ Template: <_template.md path | references/template-fallback.md>
 - **NF-# (cited)** — comma-separated, may be empty (rendered `(none)`).
 - **인접 TRD** — comma-separated slugs that share a contract. May be
   empty (rendered `(none)`). References must point at slugs in the
-  same plan.
+  same plan, and must be **bidirectional** — a shared contract binds
+  both sides, so `parse` rejects a one-sided entry
+  (`decomposition-rules.md` rule 4).
 - **Suggested splits** — rendered as `_no suggestions._` when empty.
 - **Manual review** — rendered as `_none._` when empty.
 

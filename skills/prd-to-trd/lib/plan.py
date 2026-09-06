@@ -144,10 +144,19 @@ def parse(path):
             }
         )
 
+    adjacency = {r["slug"]: r["adjacent"] for r in rows}
     for row in rows:
         for other in row["adjacent"]:
             if other not in slugs:
                 raise PlanError(row["_line"], f"인접 TRD {other!r} is not a slug in this plan")
+            # decomposition-rules.md: an adjacent pair shares an explicit
+            # contract, so the entry is bidirectional by definition. A
+            # one-sided edit means one of the two scaffolds loses the link.
+            if row["slug"] not in adjacency[other]:
+                raise PlanError(
+                    row["_line"],
+                    f"인접 TRD {other!r} does not list {row['slug']!r} back — the pair must be bidirectional",
+                )
         del row["_line"]
     return rows
 
