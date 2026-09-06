@@ -2,7 +2,8 @@
 
 ## Usage
 
-This skill has no CLI flags — it triggers on natural-language requests
+Apart from `-h` / `--help` / `help`, this skill has no CLI flags — it
+triggers on natural-language requests
 that name reference document(s) plus a target phase document, e.g.:
 
 ```
