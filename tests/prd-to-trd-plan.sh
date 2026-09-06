@@ -3,9 +3,10 @@
 #
 # The round-trip invariant of references/plan-format.md is what --apply stands
 # on: it reads the plan, not the PRD, so a silent mis-parse writes the wrong
-# frontmatter into every scaffold. This asserts the parser catches the four
-# ways a hand-edited plan breaks it, and that render round-trips the repo's own
-# worked example back to the committed scaffold.
+# frontmatter into every scaffold. This asserts the parser catches the five
+# ways a hand-edited plan breaks it, that render round-trips the repo's own
+# worked example back to the committed scaffolds, and that a mid-flow write
+# failure reports partial state instead of a traceback.
 #
 #   bash tests/prd-to-trd-plan.sh
 
@@ -35,6 +36,8 @@ assert by["ci-gate"]["nf_cited"] == ["NF-5", "NF-6"], by["ci-gate"]
 assert by["guide-pages"]["d_items"] == ["D-1", "D-5"], by["guide-pages"]
 assert by["usage-pages"]["nf_primary"] is None, by["usage-pages"]
 assert all("(none)" not in json.dumps(r, ensure_ascii=False) for r in rows), rows
+# The title override is part of the emitted schema, defaulted from the slug.
+assert by["ci-gate"]["title"] == "Ci Gate", by["ci-gate"]
 PY
 
 # --- parse: each invariant violation is caught, with a line number ---------
@@ -67,6 +70,11 @@ reject "reordered sections" "$WORK/reordered.md" "order"
 sed 's/| NF-# (primary) |/| NF-primary |/' "$EXAMPLE/plan.md" >"$WORK/column.md"
 reject "renamed column" "$WORK/column.md" "table header"
 
+# 5. a typo'd PRD item id. Whether F-7 exists in the PRD is out of scope by
+#    design (the plan is the SSOT), but its shape is the parser's business.
+sed 's/| ci-gate | F-12,F-13 |/| ci-gate | F12,F-13 |/' "$EXAMPLE/plan.md" >"$WORK/itemid.md"
+reject "malformed item id" "$WORK/itemid.md" "malformed PRD item id"
+
 # --- render: the example plan reproduces the committed scaffold ------------
 python3 "$PLAN_PY" render \
     --rows "$WORK/rows.json" \
@@ -84,6 +92,40 @@ for slug in ci-gate usage-pages; do
          <(sed -n '/^> \*\*책임 PRD 항목\*\*/,/^> \*\*인접 TRD\*\*/p' "$WORK/trd/$slug.md") \
         || fail "render: $slug frontmatter does not match the committed scaffold"
 done
+
+# --- render: a title override reaches the scaffold --------------------------
+python3 - "$WORK/rows.json" "$WORK/titled.json" <<'TITLES'
+import json, sys
+rows = json.load(open(sys.argv[1], encoding="utf-8"))
+for r in rows:
+    if r["slug"] == "ci-gate":
+        r["title"] = "CI Gate"
+json.dump(rows, open(sys.argv[2], "w", encoding="utf-8"), ensure_ascii=False)
+TITLES
+python3 "$PLAN_PY" render --rows "$WORK/titled.json" \
+    --template "$ROOT/skills/prd-to-trd/references/template-fallback.md" \
+    --out-dir "$WORK/titled" --prd "$EXAMPLE/prd-docs-pages.md" >/dev/null
+diff <(head -n1 "$EXAMPLE/trd/ci-gate.md") <(head -n1 "$WORK/titled/ci-gate.md") \
+    || fail "render: the row title override did not reach the scaffold heading"
+
+# --- render: a mid-flow write failure reports partial state, no rollback ----
+mkdir -p "$WORK/partial"
+# The 4th slug's target path is taken by a directory, so its write fails after
+# three scaffolds have already landed. --force is what makes render try to write
+# it rather than take the skip-on-exists branch.
+FOURTH=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8"))[3]["slug"])' "$WORK/rows.json")
+mkdir -p "$WORK/partial/$FOURTH.md"
+if out=$(python3 "$PLAN_PY" render --rows "$WORK/rows.json" --force \
+    --template "$ROOT/skills/prd-to-trd/references/template-fallback.md" \
+    --out-dir "$WORK/partial" --prd "$EXAMPLE/prd-docs-pages.md" 2>&1); then
+    fail "render: a failed write must exit non-zero"
+fi
+case "$out" in
+    *"written so far"*"[FAIL] spec-flow:prd-to-trd"*) : ;;
+    *) fail "render: expected a partial-state report and a [FAIL] line, got: ${out}" ;;
+esac
+[ "$(find "$WORK/partial" -maxdepth 1 -name '*.md' -type f | wc -l)" -eq 3 ] \
+    || fail "render: no auto-rollback — the 3 scaffolds written before the failure must remain"
 
 # --- render: skip-on-exists is the default, --force is the only override ----
 python3 "$PLAN_PY" render --rows "$WORK/rows.json" \
