@@ -9,8 +9,8 @@ license: MIT
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 metadata:
   model_recommendation:
-    tier: opus
-    reason: "deep code analysis, large reasoning surface"
+    tier: sonnet
+    reason: "feature analysis → one Markdown deliverable; reads code, writes no implementation"
     claude: prefer
     non_claude: advisory-only
 ---
@@ -19,7 +19,7 @@ metadata:
 
 ## Purpose
 
-You are a **Feature Analysis Specialist**. Your goal is to:
+Goals:
 
 1. Deeply understand how a specific feature is implemented in the current codebase
 2. Identify the essential libraries and their roles
@@ -27,25 +27,6 @@ You are a **Feature Analysis Specialist**. Your goal is to:
 4. **Generate a copy-pasteable AI implementation prompt** — the most important output
 
 The final deliverable lets the user paste one prompt into any AI coding assistant to implement the same feature in a new project.
-
----
-
-## Input
-
-```
-/spec-flow:reverse-engineering-analysis "<feature or file path>" [output directory]
-```
-
-**Examples:**
-```
-/spec-flow:reverse-engineering-analysis "frontend의 graph 기능" docs/feature/frontend-graph/
-/spec-flow:reverse-engineering-analysis "backend의 알람메일발송 기능" docs/feature/backend-email/
-/spec-flow:reverse-engineering-analysis .github/workflows/ci.yml docs/feature/workflows-ci/
-```
-
-- **Feature description** — search codebase with Grep/Glob to find relevant files
-- **File path** — read and analyze directly
-- Output: `<output_dir>/analysis.md` (default dir: `docs/`)
 
 ---
 
@@ -60,9 +41,7 @@ If the argument is `-h`, `--help`, or `help`, read `references/help.md` and outp
 | `<feature or file path>` | yes | — | Feature description (keyword search) or explicit file path |
 | `[output directory]` | no | `docs/` | Directory where `analysis.md` is written |
 
-> **Pattern**: All skills should place help content (usage, arguments, examples) in
-> `references/help.md` and use a one-line pointer here. This keeps SKILL.md under
-> the 100-line limit while making help always reachable.
+A feature description is resolved by keyword search (Grep/Glob); a file path is read directly.
 
 ---
 
@@ -73,8 +52,8 @@ See [`references/workflow.md`](references/workflow.md) for full step details.
 Stop on error: if any step fails, abort and report the failed step.
 
 **Step 1: Locate** — search by keyword or read file path directly
-**Step 2: Deep Dive** — scan imports/exports first on large files; read body only if needed
-**Step 3: Extract Libraries** — gather from imports; check package manifest once for versions
+**Step 2: Deep Dive** — read each core file; note what it does, how data flows, what it touches
+**Step 3: Extract Libraries** — gather from imports; check the package manifest for versions
 **Step 4: Explain Mechanism** — data flow, component handoffs, non-obvious design choices
 **Step 5: Generate AI Prompt** — self-contained and paste-and-go (**most critical output**)
 
@@ -84,12 +63,7 @@ Stop on error: if any step fails, abort and report the failed step.
 
 Write to `<output_dir>/analysis.md`. See [`references/output-template.md`](references/output-template.md) for the full template.
 
-Required sections:
-- **Overview** — 1-2 sentence summary
-- **Key Libraries** — table: Library / Version / Role
-- **How It Works** — data flow and key abstractions
-- **File Map** — source files with roles
-- **AI Implementation Prompt** — copy-pasteable, no project-specific paths
+The template is the single source for the required sections; the **AI Implementation Prompt** section is the critical one and must stay free of project-specific paths.
 
 End with `[OK] analysis written: <path>` or `[FAIL] <reason>`. A pre-write
 quality checklist is in `references/output-template.md`.

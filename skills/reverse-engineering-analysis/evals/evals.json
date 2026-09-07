@@ -1,5 +1,5 @@
 {
-  "skill_name": "reverse-engineering",
+  "skill_name": "reverse-engineering-analysis",
   "note": "Replace <PROJECT_ROOT> with the absolute path of the project to analyze when running these evals.",
   "evals": [
     {
