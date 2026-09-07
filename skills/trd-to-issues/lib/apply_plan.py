@@ -11,6 +11,9 @@ references/bulk-create-procedure.md:
          "tasks": [{"id", "title", "labels", "depends_on", "ac"}]}],
          "failures": [...]}
         A violated invariant exits 1 naming the offending line number.
+        Nothing is skipped silently: a `Depends on:` citation no task
+        declares, and any line outside the skeleton, both fail here —
+        before `--apply` has created anything to roll back.
 
     apply_plan.py resolve --rows <json|-> --map <json|->
         Rewrite every `#new-N` citation to the real issue number created by
@@ -146,6 +149,7 @@ def parse(text):
             expected_id += 1
             task = {
                 "id": f"new-{got}",
+                "line": lineno,
                 "title": m.group("title").strip(),
                 "labels": None,
                 "depends_on": None,
@@ -177,9 +181,18 @@ def parse(text):
             task["ac"].append(m.group("text").strip())
             continue
 
-        # An indented continuation of the previous criterion (wrapped line).
-        if mode == "ac" and task and task["ac"] and line.startswith("      ") and line.strip():
+        # A criterion wrapped onto the next line: any indent deeper than the
+        # `    - [ ] ` bullet it continues.
+        if mode == "ac" and task and task["ac"] and line.strip() and line.startswith("     "):
             task["ac"][-1] += " " + line.strip()
+            continue
+
+        # Anything else inside a milestone is unrecognised. Refuse it rather
+        # than skip it: the plan is the single review surface, and silently
+        # dropping a hand-edited line is exactly the failure this parser
+        # exists to prevent (PR #12 review, agy + codex BLOCKER).
+        if milestones and line.strip():
+            raise PlanError(lineno, f"line does not match the plan-format.md skeleton: {line.strip()[:60]!r}")
 
     for lineno, line in enumerate(lines[split_at + 1:], split_at + 2):
         if line.strip() and line.strip() != NO_FAILURES:
@@ -190,14 +203,22 @@ def parse(text):
     if not milestones:
         raise PlanError(1, "no '## Milestone:' heading found")
 
+    declared = {t["id"] for m in milestones for t in m["tasks"]}
     for milestone in milestones:
         for task in milestone["tasks"]:
+            line = task.pop("line")
             if task["labels"] is None:
-                raise PlanError(1, f"task #{task['id']} has no 'Labels:' bullet")
+                raise PlanError(line, f"task #{task['id']} has no 'Labels:' bullet")
             if task["depends_on"] is None:
-                raise PlanError(1, f"task #{task['id']} has no 'Depends on:' bullet")
+                raise PlanError(line, f"task #{task['id']} has no 'Depends on:' bullet")
             if not 1 <= len(task["ac"]) <= MAX_AC:
-                raise PlanError(1, f"task #{task['id']} has {len(task['ac'])} AC; plan-format.md allows 1..{MAX_AC}")
+                raise PlanError(line, f"task #{task['id']} has {len(task['ac'])} AC; plan-format.md allows 1..{MAX_AC}")
+            # Catch a dangling #new-N here, before --apply has created
+            # anything — resolve() would only see it after the issues exist,
+            # and that path has no rollback (PR #12 review, codex BLOCKER).
+            for ref in task["depends_on"]:
+                if ref.startswith("new-") and ref not in declared:
+                    raise PlanError(line, f"task #{task['id']} depends on #{ref}, which no task declares")
 
     return {
         "target_repo": header["Target repo:"],

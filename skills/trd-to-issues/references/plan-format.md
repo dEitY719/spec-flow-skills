@@ -61,5 +61,10 @@ A plan written by this skill must be re-parseable by this skill, so:
   failures` heading; an empty list is rendered as a single line `_no
   failures._` to keep the section discoverable.
 
+- A task carries exactly the title, `Labels:`, `Depends on:` and `AC:`
+  bullets above. Free prose inside a task is **rejected**, not ignored:
+  `--apply` renders the issue body from these fields, so a line the parser
+  skipped would silently never reach the filed issue.
+
 Enforced by `tests/trd-to-issues-apply-plan.sh`, which parses
 `samples/expected-plan.md` with `lib/apply_plan.py`.

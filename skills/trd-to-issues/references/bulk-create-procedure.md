@@ -13,7 +13,11 @@ python3 "$LIB" parse "<plan-out>" > "<plan-out>.rows.json"
 ```
 
 `parse` is also the gate on a hand-edited plan: a violated round-trip
-invariant exits 1 naming the offending line, before anything is created.
+invariant — an out-of-order `#new-N`, a `Depends on:` citation no task
+declares, a missing bullet, a fourth AC, a line that is not in the
+`plan-format.md` skeleton — exits 1 naming the offending line, before
+anything is created. Nothing is skipped silently, so a dangling `#new-N`
+surfaces here rather than after step 3 has already filed the issues.
 
 1. **Pre-validate labels** —
    `gh label list --repo "$TARGET_REPO" --json name --jq '.[].name'`.
@@ -25,8 +29,20 @@ invariant exits 1 naming the offending line, before anything is created.
    Title collision → stop and report (no silent skip/merge).
 3. **Create issues** — `gh issue create --repo "$TARGET_REPO" --title ...
    --body-file <tmp> --milestone <title> --label <name>...` per task, in the
-   order `parse` emitted them. Record the real number each `#new-N` was
-   assigned into a `{"new-1": <real-N>, ...}` map.
+   order `parse` emitted them. `gh issue create` prints the issue **URL**,
+   not a number, so extract and validate it per task before recording it:
+
+   ```bash
+   url=$(gh issue create --repo "$TARGET_REPO" ...)
+   num=${url##*/}
+   case "$num" in ''|*[!0-9]*)
+       echo "[FAIL] spec-flow:trd-to-issues unparseable issue URL: $url" >&2
+       exit 1 ;;
+   esac
+   ```
+
+   Collect those into a `{"new-1": <real-N>, ...}` map keyed by the `id`
+   `parse` emitted for that task.
 4. **Resolve `#new-N` citations** — never substitute by hand:
 
    ```bash

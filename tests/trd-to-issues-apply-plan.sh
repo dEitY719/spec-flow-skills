@@ -84,11 +84,28 @@ if python3 "$APPLY_PLAN" resolve --rows "$WORK/rows.json" --map "$WORK/partial.j
 fi
 grep -q 'new-1' "$WORK/bad.err" || fail "resolve did not name the unmapped citation"
 
-# --- parse: a hand-broken plan fails with a line number --------------------
-sed 's/#new-2 chore(ci)/#new-5 chore(ci)/' "$SAMPLES/expected-plan.md" >"$WORK/broken.md"
-if python3 "$APPLY_PLAN" parse "$WORK/broken.md" >/dev/null 2>"$WORK/broken.err"; then
-    fail "parse accepted an out-of-order #new-N"
-fi
-grep -qE 'line [0-9]+:' "$WORK/broken.err" || fail "parse error carried no line number"
+# --- parse: hand-broken plans fail, with the offending line number ---------
+# Each case names the line the reader has to go fix, so `line 1:` is a bug.
+reject() {  # <case-name> <sed-expression> <string the message must name>
+    sed "$2" "$SAMPLES/expected-plan.md" >"$WORK/broken.md"
+    if python3 "$APPLY_PLAN" parse "$WORK/broken.md" >/dev/null 2>"$WORK/broken.err"; then
+        fail "parse accepted $1"
+    fi
+    grep -qE 'line [1-9][0-9]*:' "$WORK/broken.err" || fail "$1: no line number in $(cat "$WORK/broken.err")"
+    if grep -qE '^\[FAIL\] spec-flow:trd-to-issues line 1:' "$WORK/broken.err"; then
+        fail "$1: reported line 1 instead of the offending line"
+    fi
+    grep -qF "$3" "$WORK/broken.err" || fail "$1: message did not name $3"
+}
+
+reject "an out-of-order #new-N" 's/#new-2 chore(ci)/#new-5 chore(ci)/' 'new-5'
+reject "a dangling dependency" 's/Depends on: #new-1$/Depends on: #new-9/' 'new-9'
+reject "a dropped Labels bullet" '/  - Labels: max-only/d' 'new-3'
+reject "a fourth acceptance criterion" \
+    's/^    - \[ \] `tox -e ruff`.*/&\n    - [ ] extra\n    - [ ] extra2/' 'new-2'
+# Free prose inside a task must fail loudly, never be silently dropped from
+# the body resolve() renders (PR #12 review, agy + codex BLOCKER).
+reject "task prose outside the skeleton" \
+    's/^  - Labels: max-only$/  Implementation note: use the bun runtime.\n&/' 'Implementation note'
 
 printf 'PASS  tests/trd-to-issues-apply-plan.sh\n'
