@@ -50,7 +50,7 @@ See [`references/workflow.md`](references/workflow.md) for full step details.
 Stop on error: if any step fails, abort and report the failed step.
 
 **Step 1: Locate** — search by keyword or read file path directly
-**Step 2: Deep Dive** — read each core file; note what it does, how data flows, what it touches
+**Step 2: Deep Dive** — read each core file (imports/exports first if large); note behaviour, data flow, interactions
 **Step 3: Extract Libraries** — gather from imports; check the package manifest for versions
 **Step 4: Explain Mechanism** — data flow, component handoffs, non-obvious design choices
 **Step 5: Generate AI Prompt** — self-contained and paste-and-go (**most critical output**)
