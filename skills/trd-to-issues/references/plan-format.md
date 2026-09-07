@@ -61,6 +61,5 @@ A plan written by this skill must be re-parseable by this skill, so:
   failures` heading; an empty list is rendered as a single line `_no
   failures._` to keep the section discoverable.
 
-If a future variant changes the skeleton, update both this file and
-`samples/expected-plan.md` in lock-step — the round-trip parser is
-verified against the sample.
+Enforced by `tests/trd-to-issues-apply-plan.sh`, which parses
+`samples/expected-plan.md` with `lib/apply_plan.py`.

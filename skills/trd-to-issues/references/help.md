@@ -51,7 +51,8 @@
 1. Reads each TRD (and optional PRD) and decomposes them into a
    three-level **Epic → Feature → Task** plan.
 2. Groups Tasks under Milestones — TRD-named structure first, otherwise
-   the skill proposes names and asks the user to confirm.
+   the skill writes proposed names into the plan for review before
+   `--apply`. It never blocks on a confirmation prompt.
 3. Validates each Task against the decomposition rules in
    `references/decomposition-rules.md`. Items that fail are split or
    reported in the plan's "decomposition failures" section.

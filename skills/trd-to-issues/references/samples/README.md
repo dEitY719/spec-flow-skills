@@ -33,7 +33,9 @@ diff <(grep -vE '^(Generated|Target repo):' /tmp/plan.md) \
        skills/trd-to-issues/references/samples/expected-plan.md)
 ```
 
-Expect zero diff. Anything else means the decomposition rules,
-labeling heuristics, or plan format drifted — update **all three**
-(`decomposition-rules.md`, `plan-format.md`, `expected-plan.md`)
-before relying on the skill again.
+Expect zero diff.
+
+The agreement between `decomposition-rules.md`, `plan-format.md` and
+`expected-plan.md` is enforced by `tests/trd-to-issues-apply-plan.sh`,
+which parses `expected-plan.md` with `lib/apply_plan.py` and checks every
+milestone and task title back against `trd-fixture.md`.
