@@ -15,7 +15,8 @@ If input is a **file path**:
 ## Step 2: Deep Dive
 
 For each core file identified:
-- Read the file; note what it does, how data flows through it, and what it interacts with
+- Large files (>200 lines): read imports/exports first, full body only if unclear
+- Note what it does, how data flows through it, and what it interacts with
 
 ## Step 3: Extract Key Libraries
 
