@@ -15,13 +15,12 @@ If input is a **file path**:
 ## Step 2: Deep Dive
 
 For each core file identified:
-- For large files (>200 lines), read imports and exported symbols first — read the full body only if implementation details are unclear
-- Note: what it does, how data flows through it, which components/modules it interacts with
+- Read the file; note what it does, how data flows through it, and what it interacts with
 
 ## Step 3: Extract Key Libraries
 
 Scan imports from Step 2 and identify all external (non-project) libraries:
-- Name and version — check the package manifest (package.json, pyproject.toml, requirements.txt, Cargo.toml, etc.) **once here**, not per-file
+- Name and version — check the package manifest (package.json, pyproject.toml, requirements.txt, Cargo.toml, etc.)
 - Why it's used specifically (e.g., "supports SVG-based force layouts" not just "it's a graph library")
 - Its role: rendering, data transformation, state management, etc.
 
