@@ -25,9 +25,16 @@ jobs:
       # metrics-footer.md is the ai-metrics footer template that
       # spec-flow:pr-to-ssot-issue emits verbatim (upstream dotfiles #317 F-2 /
       # PR #320 sanction exactly these glyphs), and decomposition-rules.md
-      # quotes GitHub priority label names as they appear on the board. Exact
-      # file paths only — do not widen this to whole directories. See
-      # CLAUDE.md -> "Emojis".
+      # quotes GitHub priority label names as they appear on the board. The
+      # three trd-to-issues samples/ files quote the same label names for the
+      # same reason and are listed for the same sanction: they pass today only
+      # because they carry U+26A1 alone, which sits below this detector's
+      # `cp >= 0x1F000` threshold, so widening that range would turn them red
+      # without any content change. Exact file paths only — do not widen this
+      # to whole directories. See CLAUDE.md -> "Emojis".
       allow-emoji-paths: |
         skills/pr-to-ssot-issue/references/metrics-footer.md
         skills/trd-to-issues/references/decomposition-rules.md
+        skills/trd-to-issues/references/samples/README.md
+        skills/trd-to-issues/references/samples/expected-plan.md
+        skills/trd-to-issues/references/samples/trd-fixture.md

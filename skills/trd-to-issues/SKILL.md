@@ -36,27 +36,22 @@ the first miss, list the missing path and stop.
 
 ## Step 2: Read TRD/PRD + Decompose
 
-Load each TRD (and optional PRD) via `Read`. Decompose into three
-levels — **Epic → Feature → Task** (Epic = the TRD-scale outcome,
-Feature = a milestone-sized slice, Task = the issue that is actually
-filed). Extract:
+Load each TRD (and optional PRD) via `Read`. Decompose into **Epic →
+Feature → Task** (Epic = the TRD-scale outcome, Feature = a
+milestone-sized slice, Task = the issue actually filed). Extract:
 
-- Milestones — TRD-named structure first; if absent, write the
-  proposed names directly into the dry-run plan (under each
-  `## Milestone:` heading) so the user reviews them in the plan file
-  and edits or re-runs before `--apply`. Never block mid-flow on a
-  confirmation prompt — Claude Code is non-interactive and `read`
-  would hang.
+- Milestones — TRD-named structure first; if absent, write the proposed
+  names into the dry-run plan under each `## Milestone:` heading so the
+  user reviews and edits or re-runs before `--apply`. Never block
+  mid-flow on a confirmation prompt.
 - Tasks — each must satisfy the criteria in
   `references/decomposition-rules.md` (≤ 3 ACs, unit-testable,
   independently committable). Items that fail the criteria are split
   further or reported as "decomposition failures" in the plan.
 - Dependencies — extract `Depends on #...` keywords; emit virtual
-  citations (`#new-1`, `#new-2`, ...) that resolve to real numbers
-  during `--apply`.
-- Labels — apply the `pro-friendly` / `max-only` heuristic from
-  `references/decomposition-rules.md`; merge any priority labels named
-  in the TRD.
+  citations (`#new-1`, ...) resolved to real numbers during `--apply`.
+- Labels — the `pro-friendly` / `max-only` heuristic from
+  `references/decomposition-rules.md`, plus priority labels named in the TRD.
 
 ## Step 3: Write Plan
 
@@ -75,9 +70,13 @@ Run with --apply to register on GitHub.
 ## Step 4: Apply (only if `--apply`)
 
 Nothing is registered on GitHub without an explicit `--apply` — the
-default `--dry-run` writes the plan and stops. Bulk registration (label
-pre-validation → milestones via `gh api` → `gh issue create` per Task →
-`#new-N` resolution → Ready promotion) and its mid-flow-failure rules:
+default `--dry-run` writes the plan and stops.
+
+Parse the plan and resolve `#new-N` with the bundled `lib/apply_plan.py`
+(via `$CLAUDE_PLUGIN_ROOT`; unset → stop). Never substitute virtual
+numbers by hand — the issues exist by then and there is no rollback.
+Label pre-validation, milestones, `gh issue create`, `resolve`, Ready
+promotion, and the mid-flow-failure rules:
 [references/bulk-create-procedure.md](references/bulk-create-procedure.md).
 
 ## Step 5: Report
@@ -88,6 +87,9 @@ Print: `--plan-out` path, milestone count, task count, and (for
 ```
 [OK] spec-flow:trd-to-issues plan=<path> milestones=<n> tasks=<n> [url=<repo-url>]
 ```
+
+After `--apply`, add `Next: /gh-flow:issue <first-task-issue-#>` —
+implement the first Task end-to-end.
 
 Operational constraints: see `references/constraints.md`.
 
