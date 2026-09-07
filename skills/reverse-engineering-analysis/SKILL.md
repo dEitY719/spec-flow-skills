@@ -38,10 +38,8 @@ If the argument is `-h`, `--help`, or `help`, read `references/help.md` and outp
 
 | Argument | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `<feature or file path>` | yes | — | Feature description (keyword search) or explicit file path |
+| `<feature or file path>` | yes | — | Feature description (resolved via Grep/Glob keyword search) or explicit file path (read directly) |
 | `[output directory]` | no | `docs/` | Directory where `analysis.md` is written |
-
-A feature description is resolved by keyword search (Grep/Glob); a file path is read directly.
 
 ---
 
