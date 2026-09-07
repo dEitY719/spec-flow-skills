@@ -109,18 +109,22 @@ Three things this repo depends on are owned by `dEitY719/harness-skills`
 ## Emojis
 
 Not in prose, manifests, or workflow files — token efficiency, same rule as the
-upstream dotfiles repo. **Two exceptions, both exact files:**
+upstream dotfiles repo. **Five exceptions, all exact files:**
 
 - `skills/pr-to-ssot-issue/references/metrics-footer.md` — the ai-metrics footer
   template. Those glyphs *are* the output format the skill emits, and the
   upstream dotfiles `CLAUDE.md` names this the single sanctioned emoji exception
   in the whole project (dEitY719/dotfiles#317 F-2, PR #320).
-- `skills/trd-to-issues/references/decomposition-rules.md` — GitHub priority
-  label names quoted verbatim as they appear on the board.
+- `skills/trd-to-issues/references/decomposition-rules.md` and the three files
+  under `skills/trd-to-issues/references/samples/` (`README.md`,
+  `expected-plan.md`, `trd-fixture.md`) — GitHub priority label names quoted
+  verbatim as they appear on the board; the samples quote the same names for
+  the same reason.
 
-CI's emoji gate is passed those two paths in `allow-emoji-paths` for exactly
-that reason. Matching is by prefix, so keep it at file granularity: do not widen
-it to a directory, do not add a third path, and do not add emoji anywhere else.
+CI's emoji gate is passed those five paths in `allow-emoji-paths` for exactly
+that reason. Matching is by prefix, so keep it at file granularity: do not
+widen it to a directory, do not add another path without the same
+already-on-the-board justification, and do not add emoji anywhere else.
 
 ## Version bumps
 

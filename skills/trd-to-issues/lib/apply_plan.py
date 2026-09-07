@@ -45,7 +45,6 @@ TASK_RE = re.compile(r"^- \[ \] #new-(?P<n>\d+) (?P<title>.+)$")
 SUB_RE = re.compile(r"^  - (?P<key>Labels|Depends on|AC): ?(?P<value>.*)$")
 AC_RE = re.compile(r"^    - \[ \] (?P<text>.+)$")
 REF_RE = re.compile(r"^#(?P<ref>new-\d+|\d+)$")
-VIRTUAL_RE = re.compile(r"^new-\d+$")
 
 
 class PlanError(Exception):
@@ -96,25 +95,22 @@ def parse(text):
     if missing:
         raise PlanError(1, f"missing header field(s): {', '.join(missing)}")
 
+    # '## Decomposition failures' is always the last, bottom-level section
+    # (plan-format.md "Top-level structure") — splitting on it up front turns
+    # per-line in-failures tracking into a plain slice, and doubles as the
+    # "section present" check no separate pass needs to redo below.
+    try:
+        split_at = next(i for i, line in enumerate(lines) if line.startswith(FAILURES_HEADING))
+    except StopIteration:
+        raise PlanError(len(lines), f"missing '{FAILURES_HEADING}' section") from None
+
     milestones = []
     failures = []
     task = None
-    in_ac = False
-    in_failures = False
-    in_description = False
+    mode = None  # None | "ac" | "description"
     expected_id = 1
 
-    for lineno, line in enumerate(lines, 1):
-        if line.startswith(FAILURES_HEADING):
-            in_failures, task, in_ac = True, None, False
-            continue
-        if in_failures:
-            if line.strip() and line.strip() != NO_FAILURES:
-                if not line.startswith("- "):
-                    raise PlanError(lineno, "decomposition failures must be '- ' bullets")
-                failures.append(line[2:].strip())
-            continue
-
+    for lineno, line in enumerate(lines[:split_at], 1):
         m = MILESTONE_RE.match(line)
         if m:
             milestones.append({
@@ -123,22 +119,22 @@ def parse(text):
                 "description": "",
                 "tasks": [],
             })
-            task, in_ac, in_description = None, False, False
+            task, mode = None, None
             continue
 
         if line.startswith("Description:"):
             if not milestones:
                 raise PlanError(lineno, "'Description:' before any '## Milestone:' heading")
             milestones[-1]["description"] = line[len("Description:"):].strip()
-            in_description = True
+            mode = "description"
             continue
 
-        if in_description:
+        if mode == "description":
             # The description wraps over the following lines until a blank one.
             if line.strip() and not line.startswith(("-", "#")):
                 milestones[-1]["description"] += " " + line.strip()
                 continue
-            in_description = False
+            mode = None
 
         m = TASK_RE.match(line)
         if m:
@@ -156,7 +152,7 @@ def parse(text):
                 "ac": [],
             }
             milestones[-1]["tasks"].append(task)
-            in_ac = False
+            mode = None
             continue
 
         m = SUB_RE.match(line)
@@ -171,24 +167,28 @@ def parse(text):
             else:
                 if value.strip():
                     raise PlanError(lineno, "'AC:' takes no inline value; criteria are nested checkboxes")
-                in_ac = True
+                mode = "ac"
             continue
 
         m = AC_RE.match(line)
         if m:
-            if not in_ac:
+            if mode != "ac":
                 raise PlanError(lineno, "acceptance criterion outside an 'AC:' bullet")
             task["ac"].append(m.group("text").strip())
             continue
 
         # An indented continuation of the previous criterion (wrapped line).
-        if in_ac and task and task["ac"] and line.startswith("      ") and line.strip():
+        if mode == "ac" and task and task["ac"] and line.startswith("      ") and line.strip():
             task["ac"][-1] += " " + line.strip()
+
+    for lineno, line in enumerate(lines[split_at + 1:], split_at + 2):
+        if line.strip() and line.strip() != NO_FAILURES:
+            if not line.startswith("- "):
+                raise PlanError(lineno, "decomposition failures must be '- ' bullets")
+            failures.append(line[2:].strip())
 
     if not milestones:
         raise PlanError(1, "no '## Milestone:' heading found")
-    if not any(line.startswith(FAILURES_HEADING) for line in lines):
-        raise PlanError(len(lines), f"missing '{FAILURES_HEADING}' section")
 
     for milestone in milestones:
         for task in milestone["tasks"]:
@@ -224,7 +224,7 @@ def resolve(plan, mapping):
                 raise PlanError(0, f"no created issue number for {task['id']}")
             deps = []
             for ref in task["depends_on"]:
-                if VIRTUAL_RE.match(ref):
+                if ref.startswith("new-"):
                     if ref not in mapping:
                         raise PlanError(0, f"{task['id']} depends on #{ref}, which has no created issue number")
                     deps.append(mapping[ref])
