@@ -1,6 +1,6 @@
 {
   "name": "spec-flow-skills",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "PRD to TRD to GitHub issues — spec decomposition and reverse-engineering skills",
   "type": "module",
   "main": ".opencode/plugins/spec-flow.js",

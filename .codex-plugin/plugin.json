@@ -1,6 +1,6 @@
 {
   "name": "spec-flow",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Run the PRD -> TRD -> issue planning pipeline: decompose a product spec into per-component TRDs, TRDs into Epic/Feature/Task issues, and reverse-engineer finished work back into specs and prompts.",
   "author": {
     "name": "dEitY719",
