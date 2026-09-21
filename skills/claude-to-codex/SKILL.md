@@ -2,7 +2,7 @@
 name: claude-to-codex
 description: >-
   Claude 로 작성한 phase 구현 문서를, 고칠 파일과 순서와 멈출 지점을 못박은
-  scope-bounded work order 로 재구성(필요하면 분할)한다. Use for
+  scope-bounded work order 로 재구성한다. Use for
   /spec-flow:claude-to-codex, "이 phase 문서를 codex용으로 재구성해줘",
   "codex 에서 작업하기 최적화된 설계문서로 바꿔줘",
   "convert this phase doc into a scope-bounded work order for Codex".
