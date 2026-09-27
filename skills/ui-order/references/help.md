@@ -3,6 +3,7 @@
 Usage:
   /spec-flow:ui-order "<UI request>"
   /spec-flow:ui-order --setup [--apply] [--force] [--project <dir>]
+  /spec-flow:ui-order --check [--project <dir>]
   /spec-flow:ui-order help | -h | --help
 
 Arguments:
@@ -29,6 +30,17 @@ Setup (--setup):
   A symlinked CLAUDE.md (e.g. -> AGENTS.md) is written through. Nothing outside
   the markers is ever touched. Malformed markers fail with exit 1, no write.
 
+Check (--check):
+  Read-only audit of existing frontend code for vague / drifting UI criteria:
+  non-Lucide icon sets and emoji icons, icon-only buttons without aria-label,
+  outline-none without focus-visible, <img> without alt, off-scale spacing,
+  too many radius values, hard-coded colors, stray breakpoints, data views
+  missing loading / empty / error states, mixed overlays, and an unconfirmed
+  CLAUDE.md ui-order block. Prints a Korean report (file:line evidence + the
+  UI term to fix it with) ending in "주문서 반영 제안". Writes nothing.
+
+  --project <dir>   Project dir (default: git toplevel of CWD, else CWD)
+
 Examples:
   /spec-flow:ui-order "버튼 만들어줘"
   /spec-flow:ui-order "알림 띄워줘"
@@ -36,6 +48,8 @@ Examples:
   /spec-flow:ui-order --setup
   /spec-flow:ui-order --setup --apply
   /spec-flow:ui-order --setup --apply --force
+  /spec-flow:ui-order --check
+  /spec-flow:ui-order --check --project ./web
   /spec-flow:ui-order help
 
 Options:

@@ -47,7 +47,7 @@ wireframe-first line.
 From `package.json` (dependencies + devDependencies) and marker files:
 Tailwind (`tailwindcss` or `tailwind.config.*`), shadcn/ui (`components.json`),
 MUI, Ant Design, Fluent UI, framework (Next.js / Nuxt / SvelteKit / React / Vue /
-Svelte), Lucide (`lucide-react`). Detected values are written plain; the rest are
+Svelte), Lucide (`lucide-react`, `lucide-vue-next`, `lucide-svelte`, `lucide`). Detected values are written plain; the rest are
 `checklist.md` defaults marked `(기본값)`. `[화면]` cannot be detected, so it is a
 placeholder the user must edit.
 

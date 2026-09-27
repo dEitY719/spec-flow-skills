@@ -27,7 +27,9 @@ Cross-cutting defaults:
 - **Stack** — if the project has none: Tailwind + shadcn/ui, 미니멀 스타일, 라이트/다크 모두
   (시스템 설정 따름). If the project already uses a library, follow it and do not ask.
 - **Motion** — 전환 200ms ease-out; `prefers-reduced-motion` 이면 애니메이션 끔.
-- **Icons** — Lucide outline 20px (버튼 안), 한 세트로 통일, 이모지 아이콘 금지.
+- **Icons** — 기본이자 유일한 세트는 Lucide (`lucide-react` / `lucide-vue-next` /
+  `lucide-svelte`), outline 20px (버튼 안). 다른 아이콘 세트와 섞지 않는다 (react-icons,
+  Heroicons, MUI Icons, Font Awesome ... 금지). 이모지를 아이콘으로 쓰지 않는다.
 - **Theme** — 한 테마만 (Material / Cupertino / Fluent 를 섞지 않는다).
 
 ## Component-family slots
@@ -99,7 +101,7 @@ Cross-cutting defaults:
 | 맞춤 | object-fit cover |
 | 로딩 | 회색 플레이스홀더로 자리 확보 + 화면 밖 이미지는 lazy |
 | 사진 위 글자 | 어두운 그라데이션 오버레이 |
-| 아이콘 | Lucide outline; 16px 글자 옆, 20px 버튼 안, 24px 툴바·탭 바; 선택된 탭만 filled |
+| 아이콘 | Lucide 단일 세트 (다른 세트 혼용 금지, 이모지 아이콘 금지), outline; 16px 글자 옆, 20px 버튼 안, 24px 툴바·탭 바; 선택된 탭만 filled |
 
 ## What never needs asking
 
