@@ -1,6 +1,6 @@
 """Hermes Agent registration for the `spec-flow` skills plugin.
 
-Registers the five spec-pipeline skills with Hermes' native skill loader so
+Registers the six spec-flow skills with Hermes' native skill loader so
 `skill_view("spec-flow:<name>")` can load them on demand.
 
 Like the sibling `harness` and `notes` plugins, this one injects no session
