@@ -138,7 +138,7 @@
     <header class="page animate">
       <span class="eyebrow">spec-flow plugin &middot; skill docs</span>
       <h1>spec-flow skills</h1>
-      <p class="lede">제품 스펙과 실제 작업 사이를 <strong>양방향으로</strong> 오가는 스킬 5개 &mdash; PRD 를 TRD 로, TRD 를 이슈로 내려보내고, 이미 머지된 PR 과 이미 동작하는 기능에서 스펙을 역산합니다. 스킬마다 설명서 1건과 사용 예시 1건이 있습니다.</p>
+      <p class="lede">제품 스펙과 실제 작업 사이를 <strong>양방향으로</strong> 오가는 스킬 6개 &mdash; PRD 를 TRD 로, TRD 를 이슈로 내려보내고, 이미 머지된 PR 과 이미 동작하는 기능에서 스펙을 역산합니다. 모호한 UI 요청은 구현 전에 화면 주문서로 되묻습니다. 스킬마다 설명서 1건이 있고, <code>ui-order</code> 를 뺀 다섯 개는 사용 예시도 있습니다.</p>
 
       <div class="label">정방향 &mdash; 스펙에서 작업으로</div>
       <div class="flow"><span class="node">PRD</span><span class="arrow">&#9472;&#9654;</span> <span class="node mid">컴포넌트별 TRD</span><span class="arrow">&#9472;&#9654;</span> <span class="node mid">사람이 채운다</span><span class="arrow">&#9472;&#9654;</span> <span class="node out">Epic / Feature / Task 이슈</span></div>
@@ -153,7 +153,7 @@
     </header>
 
     <section data-reveal>
-      <h2><span class="num">1</span>스킬 5개</h2>
+      <h2><span class="num">1</span>스킬 6개</h2>
       <div class="skill-grid">
       <article class="card" data-reveal>
         <h3>prd-to-trd</h3>
@@ -204,12 +204,20 @@
           <a href="ai/phases/codex/phase-03-docs-ci-gate-codex-01.md"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7h6l2 2h10v10H3z"/></svg><span>실제 산출물</span></a>
         </div>
       </article>
+      <article class="card" data-reveal>
+        <h3>ui-order</h3>
+        <code class="inv">/spec-flow:ui-order "&lt;UI request&gt;"</code>
+        <p>&ldquo;버튼 만들어줘&rdquo;, &ldquo;폰에서도 되게&rdquo; 같은 모호한 UI 요청을 바로 구현하지 않고, 빠진 결정을 묻는 질문 최대 5개와 기본값을 채운 <strong>화면 주문서 초안</strong>으로 먼저 답한다. 질문이 곧 최종 출력이라 실행 중간에 멈추지 않는다. 파일은 <code>--setup --apply</code> 때만, 프로젝트 <code>CLAUDE.md</code> 의 표식 블록 안에만 쓴다.</p>
+        <div class="links">
+          <a href="skill-guides/ui-order.html"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg><span>설명서</span></a>
+        </div>
+      </article>
       </div>
     </section>
 
     <section data-reveal>
       <h2><span class="num">2</span>세 방향</h2>
-      <p>다섯 개를 가르는 기준은 주제가 아니라 <strong>파이프라인 위에서 어느 쪽으로 움직이는가</strong>입니다.</p>
+      <p>파이프라인 위의 다섯 개를 가르는 기준은 주제가 아니라 <strong>파이프라인 위에서 어느 쪽으로 움직이는가</strong>입니다.</p>
       <div class="pair">
         <article class="card">
           <h3>내려간다 &mdash; prd-to-trd &rarr; trd-to-issues</h3>

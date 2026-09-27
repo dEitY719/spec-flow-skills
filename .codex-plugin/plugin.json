@@ -23,7 +23,7 @@
   "interface": {
     "displayName": "Spec Flow",
     "shortDescription": "Turn a product spec into technical designs, then into issues",
-    "longDescription": "Spec Flow bundles the five skills that carry a product spec down to filed work and back again: prd-to-trd splits one PRD into per-component TRD scaffolds, trd-to-issues decomposes a filled-in TRD into Epic/Feature/Task and bulk-creates GitHub milestones and issues (only with --apply; the default is a reviewable dry-run plan), pr-to-ssot-issue reverse-engineers an exception PR that skipped PRD/TRD into an SSOT tracking issue, reverse-engineering-analysis turns an existing feature into a copy-pasteable AI implementation prompt, and claude-to-codex rewrites a Claude-authored phase document into an imperative doc a Codex run can execute from alone.",
+    "longDescription": "Spec Flow bundles the six skills that carry a product spec down to filed work and back again: prd-to-trd splits one PRD into per-component TRD scaffolds, trd-to-issues decomposes a filled-in TRD into Epic/Feature/Task and bulk-creates GitHub milestones and issues (only with --apply; the default is a reviewable dry-run plan), pr-to-ssot-issue reverse-engineers an exception PR that skipped PRD/TRD into an SSOT tracking issue, reverse-engineering-analysis turns an existing feature into a copy-pasteable AI implementation prompt, claude-to-codex rewrites a Claude-authored phase document into an imperative doc a Codex run can execute from alone, and ui-order answers a vague UI request with clarifying questions and a draft screen order before anything is built.",
     "developerName": "dEitY719",
     "category": "Developer Tools",
     "capabilities": [

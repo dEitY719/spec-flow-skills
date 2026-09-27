@@ -7,9 +7,10 @@ text. Edit `CLAUDE.md`; never replace the symlink with a second copy.
 ## What this repo is
 
 A single-plugin skill marketplace. The plugin is named `spec-flow` and it
-bundles the five skills of the **PRD -> TRD -> issue planning pipeline** —
+bundles the six skills of the **PRD -> TRD -> issue planning pipeline** —
 turning a product spec into technical designs, technical designs into GitHub
-issues, and finished work back into specs and prompts:
+issues, finished work back into specs and prompts, and a vague UI request into
+a confirmed screen order:
 
 | Skill | Role |
 |-------|------|
@@ -18,6 +19,7 @@ issues, and finished work back into specs and prompts:
 | `pr-to-ssot-issue` | Reverse-engineer an exception PR that skipped PRD/TRD into an SSOT tracking issue. |
 | `reverse-engineering-analysis` | Analyze an existing feature into a reusable, copy-pasteable AI implementation prompt. |
 | `claude-to-codex` | Rewrite a Claude-authored phase document into an imperative doc optimized for Codex execution, splitting it when needed. |
+| `ui-order` | Before building a vague UI request, answer with clarifying questions plus a draft screen order (화면 주문서) with suggested defaults. |
 
 The skills were extracted from `dEitY719/dotfiles` (`claude/skills/devx-*`) as a
 snapshot — see the first commit for the source SHA. The dotfiles copies remain
@@ -84,7 +86,7 @@ Three things this repo depends on are owned by `dEitY719/harness-skills`
 - **Progressive disclosure.** `SKILL.md` stays under 100 lines (CI enforces it)
   and names which `references/` file to read and when. Detail lives in that
   skill's own `references/`. Do not inline a reference file back into
-  `SKILL.md`. These five are already close to the limit — shorten prose rather
+  `SKILL.md`. These six are already close to the limit — shorten prose rather
   than moving steps out of sight.
 - **Description budget.** CI sums every skill description and fails past 5,440
   characters — Codex's context budget. Keep new descriptions tight, and keep the
@@ -95,12 +97,17 @@ Three things this repo depends on are owned by `dEitY719/harness-skills`
   exactly one issue plus an optional backlink comment. `prd-to-trd` skips
   existing scaffolds unless `--force`. `reverse-engineering-analysis` and
   `claude-to-codex` write local files and never edit the source document.
+  `ui-order` writes a file only under `--setup --apply`: the project's
+  `CLAUDE.md` (through a symlink, if it is one), and only between its
+  `<!-- ui-order:begin -->` / `<!-- ui-order:end -->` markers.
   Nothing here pushes, merges, or force-pushes. Neither `gh`-touching skill
   auto-creates labels or milestones, and neither rolls back on a mid-flow
   failure — it reports partial state instead. Do not "improve" any of that.
 - **Non-interactive by design.** None of these skills stops to ask a question
   mid-run; the review surface is the plan file. A blocking prompt would hang the
-  harness. Do not add one.
+  harness. Do not add one. `ui-order`'s clarifying questions are its final
+  output — it prints them and ends the turn, and the user answers in a normal next
+  turn — so they are not a mid-run prompt.
 - **Provenance is non-negotiable.** These skills resolve the target repo from
   the git remote, cite PR numbers and `file:line` anchors, and fail closed on an
   unknown remote or an empty gap. A step that would let a skill guess instead of

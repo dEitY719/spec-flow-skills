@@ -1,8 +1,8 @@
 # spec-flow — skill index
 
-Five skills for the PRD -> TRD -> issue planning pipeline. Each lives in this
+Six skills for the PRD -> TRD -> issue planning pipeline, plus UI request clarification. Each lives in this
 extension's `skills/` directory. They are task-triggered: load the one that
-matches the job by reading its `SKILL.md`, then follow it. Do not load all five.
+matches the job by reading its `SKILL.md`, then follow it. Do not load all six.
 
 | Skill | Read | Use when |
 |-------|------|----------|
@@ -11,6 +11,7 @@ matches the job by reading its `SKILL.md`, then follow it. Do not load all five.
 | `pr-to-ssot-issue` | `@./skills/pr-to-ssot-issue/SKILL.md` | Recovering SSOT coverage for a PR that shipped without a PRD/TRD, by filing a tracking issue after the fact. |
 | `reverse-engineering-analysis` | `@./skills/reverse-engineering-analysis/SKILL.md` | Analyzing an existing feature into a copy-pasteable AI implementation prompt for a new project. |
 | `claude-to-codex` | `@./skills/claude-to-codex/SKILL.md` | Rewriting a Claude-authored phase document into an imperative doc Codex can execute from alone. |
+| `ui-order` | `@./skills/ui-order/SKILL.md` | A UI request is vague ("버튼 만들어줘", "예쁘게", "폰에서도 되게"): ask clarifying questions with a draft screen order before building. |
 
 Each skill's `references/` directory holds the detail it loads on demand;
 `SKILL.md` says which file to read and when. Do not read `references/` files up
@@ -28,6 +29,8 @@ The discriminator is **which direction along the pipeline you are moving**:
   reusable implementation prompt).
 - Sideways, doc to doc: `claude-to-codex` rewrites an existing phase document
   for a different executor. It does not decompose anything.
+- Before UI work: `ui-order` turns a vague UI request into questions plus a
+  draft screen order, then ends the turn.
 
 `trd-to-issues` is the only one that can create GitHub issues in bulk, and only
 under `--apply`. If the user has not said `--apply`, the answer is a plan file.
@@ -60,7 +63,8 @@ read that repo's `references/antigravity-tools.md` instead: `agy` shares
   guess an `owner/repo`.
 - These skills never prompt mid-run: they are written for a non-interactive
   harness, and the review surface is the dry-run plan file. Gemini CLI's
-  `ask_user` is not part of any flow here — do not insert one.
+  `ask_user` is not part of any flow here — do not insert one. `ui-order` prints
+  its questions as final output and ends the turn; the user answers next turn.
 - `reverse-engineering-analysis` reads broadly across the repo before writing.
   On a large codebase, scan imports and exports first (`grep_search` / `glob`)
   rather than reading whole files.

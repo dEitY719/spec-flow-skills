@@ -1,8 +1,9 @@
 # spec-flow-skills
 
-Five skills for the **PRD -> TRD -> issue** planning pipeline — turning a
-product spec into technical designs, technical designs into GitHub issues, and
-finished work back into specs and prompts. Packaged as a single plugin named
+Six skills for the **PRD -> TRD -> issue** planning pipeline — turning a
+product spec into technical designs, technical designs into GitHub issues,
+finished work back into specs and prompts, and a vague UI request into a
+confirmed screen order. Packaged as a single plugin named
 `spec-flow`, installable on six coding-agent harnesses.
 
 Every stage produces a reviewable artifact first. Nothing reaches GitHub until
@@ -17,6 +18,7 @@ you ask for it explicitly.
 | `pr-to-ssot-issue` | `/spec-flow:pr-to-ssot-issue <PR#> --reason "<text>" [--parent <N>] [--dry-run]` | Reverse-engineers an exception PR — one already merged, or in flight with no matching PRD/TRD — into an 8-section SSOT tracking issue, so the workflow regains coverage. The source PR is read-only. |
 | `reverse-engineering-analysis` | `/spec-flow:reverse-engineering-analysis "<feature or file path>" [output-dir]` | Traces how one existing feature actually works — libraries, data flow, file map — and writes `analysis.md` whose most important section is a self-contained AI implementation prompt you can paste into any assistant to rebuild it elsewhere. |
 | `claude-to-codex` | `/spec-flow:claude-to-codex` (names a phase doc plus its references) | Rewrites a Claude-authored phase document into imperative Codex instructions under `docs/ai/phases/codex/`, splitting into numbered slices only when a documented trigger fires. The original is never edited. |
+| `ui-order` | `/spec-flow:ui-order "<UI request>"` | Checks a vague UI request ("버튼 만들어줘", "폰에서도 되게") against a UI/UX slot checklist and, instead of building, answers with up to five clarifying questions plus a draft screen order (화면 주문서) with defaults marked. Reply "기본값으로 진행" to build with the defaults. Writes no files, except `--setup --apply`, which inserts a marked block into the project `CLAUDE.md`. |
 
 ### Visual guides and worked examples (GitHub Pages)
 
@@ -25,6 +27,7 @@ you ask for it explicitly.
 - `pr-to-ssot-issue` — [visual guide](https://deity719.github.io/spec-flow-skills/skill-guides/pr-to-ssot-issue.html) · [usage example](https://deity719.github.io/spec-flow-skills/skill-output/pr-to-ssot-issue-usage.html) (exception PR to SSOT tracking issue)
 - `reverse-engineering-analysis` — [visual guide](https://deity719.github.io/spec-flow-skills/skill-guides/reverse-engineering-analysis.html) · [usage example](https://deity719.github.io/spec-flow-skills/skill-output/reverse-engineering-analysis-usage.html) (feature to reusable AI prompt)
 - `claude-to-codex` — [visual guide](https://deity719.github.io/spec-flow-skills/skill-guides/claude-to-codex.html) · [usage example](https://deity719.github.io/spec-flow-skills/skill-output/claude-to-codex-usage.html) (phase doc to Codex instructions)
+- `ui-order` — [visual guide](https://deity719.github.io/spec-flow-skills/skill-guides/ui-order.html) (vague UI request to screen order)
 
 Each page is generated from a Markdown source under
 [`docs/skill-guides/`](docs/skill-guides) and [`docs/skill-output/`](docs/skill-output).
@@ -36,6 +39,9 @@ The discriminator is **which direction along the pipeline you are moving**:
 | Forward — spec to work | Backward — work to spec | Sideways — doc to doc |
 |---|---|---|
 | `prd-to-trd` -> `trd-to-issues`. They chain: a human fills the scaffolds in between. | `pr-to-ssot-issue` (shipped PR -> tracking issue), `reverse-engineering-analysis` (feature -> reusable prompt) | `claude-to-codex` rewrites an existing phase doc for a different executor; it decomposes nothing |
+
+`ui-order` sits outside that axis: it runs before any UI is built and turns a
+vague request into a screen order the user confirms.
 
 `trd-to-issues` is the only skill that creates GitHub issues in bulk, and it
 does so only under `--apply`.
@@ -61,7 +67,8 @@ These skills plan out loud before they act:
 - **No push, no merge, no force-push, and no automatic rollback.** A mid-flow
   failure reports the partial state and exits non-zero.
 - **No mid-run prompts.** These skills are written for a non-interactive
-  harness; the review surface is the plan file.
+  harness; the review surface is the plan file. `ui-order`'s questions are its
+  final output, answered in the next turn — not a blocking prompt.
 
 ## Install
 
@@ -117,12 +124,13 @@ per-harness tool mappings and capability gaps are documented once, in
 | `pr-to-ssot-issue` | full | full | full | full | full | full |
 | `reverse-engineering-analysis` | full | full | full | full | full | full |
 | `claude-to-codex` | full | full | full | full | full | full |
+| `ui-order` | full | full | full | full | full | full |
 
 Two prerequisites are on you, not the plugin:
 
 - **`gh`** must be installed and authenticated for `trd-to-issues --apply` and
   for `pr-to-ssot-issue`. Every harness reaches GitHub by shelling out to it;
-  none has a native substitute. The other three skills need no network at all.
+  none has a native substitute. The other four skills need no network at all.
 - **A subagent facility** for `pr-to-ssot-issue` Step 3 (gap analysis). Every
   harness above has one under some name; the mapping is in the `harness-skills`
   reference for yours. Where a build genuinely lacks it, run that analysis
@@ -134,7 +142,7 @@ Manifests live at the repo root and all point at one flat `skills/` directory:
 
 ```
 .
-├── skills/{prd-to-trd,trd-to-issues,pr-to-ssot-issue,reverse-engineering-analysis,claude-to-codex}/
+├── skills/{prd-to-trd,trd-to-issues,pr-to-ssot-issue,reverse-engineering-analysis,claude-to-codex,ui-order}/
 │   ├── SKILL.md
 │   └── references/
 ├── .claude-plugin/{marketplace,plugin}.json      Claude Code

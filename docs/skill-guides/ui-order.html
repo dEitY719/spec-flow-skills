@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ko" class="theme-light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ui-order — spec-flow skill guide</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ===== THEMES (class-based only) ===== */
+html.theme-light{
+  --bg:#FAFAF9; --surface:#FFFFFF; --surface-hover:#F5F5F4;
+  --border:rgba(15,23,42,0.10);
+  --text:#0f172a; --text-secondary:#5b6472;
+  --accent:#2563eb; --accent-secondary:#7c3aed;
+  --positive:#059669; --negative:#e11d48; --warning:#b45309;
+  --code-bg:#F4F4F5; --code-text:#1e293b;
+  --pre-bg:#12161f; --pre-text:#e6edf3; --pre-border:rgba(255,255,255,0.10);
+  --shadow:0 1px 2px rgba(15,23,42,.06),0 8px 24px rgba(15,23,42,.06);
+}
+html.theme-dark{
+  --bg:#0A0A0A; --surface:#141414; --surface-hover:#1C1C1C;
+  --border:rgba(255,255,255,0.10);
+  --text:#EDEDED; --text-secondary:#9aa3af;
+  --accent:#60a5fa; --accent-secondary:#a78bfa;
+  --positive:#10b981; --negative:#f43f5e; --warning:#f59e0b;
+  --code-bg:#1d1d20; --code-text:#e5e7eb;
+  --pre-bg:#0f1117; --pre-text:#e6edf3; --pre-border:rgba(255,255,255,0.08);
+  --shadow:0 1px 2px rgba(0,0,0,.5),0 8px 24px rgba(0,0,0,.35);
+}
+
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",
+    "Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",AppleGothic,sans-serif;
+  background:var(--bg); color:var(--text);
+  line-height:1.7; -webkit-font-smoothing:antialiased;
+  letter-spacing:-0.005em; scrollbar-gutter:stable;
+  transition:background .3s,color .3s;
+  overflow-wrap:break-word; word-break:keep-all;
+}
+h1,h2,h3,h4{color:var(--text);letter-spacing:-0.025em;line-height:1.2;text-wrap:balance}
+h1{font-weight:700;font-size:clamp(2rem,5vw,3rem)}
+h2{font-weight:650;font-size:clamp(1.5rem,3.2vw,2rem)}
+h3{font-weight:600;font-size:1.5rem}
+p,li,td,th,span,label{font-weight:400;color:var(--text)}
+a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent}
+a:hover{border-bottom-color:currentColor}
+.text-secondary{color:var(--text-secondary)}
+
+/* ===== LAYOUT ===== */
+.shell{max-width:1180px;margin:0 auto;padding:0 24px 96px;
+  display:grid;grid-template-columns:minmax(0,1fr) 232px;gap:56px;align-items:start}
+.doc-head{grid-column:1 / -1;padding:64px 0 28px;border-bottom:1px solid var(--border);margin-bottom:40px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.75rem;font-weight:600;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--text-secondary)}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.doc-head h1{margin:14px 0 12px;font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace}
+.doc-head .lede{font-size:1.0625rem;color:var(--text-secondary);max-width:62ch}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.badge{font-size:.75rem;font-weight:500;padding:4px 10px;border-radius:999px;
+  border:1px solid var(--border);background:var(--surface);color:var(--text-secondary)}
+
+/* ===== TOC ===== */
+.toc{position:sticky;top:24px;font-size:.875rem;order:2}
+.toc-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--text-secondary);margin-bottom:12px}
+.toc ol{list-style:none;counter-reset:toc}
+.toc li{counter-increment:toc;margin:0}
+.toc a{display:block;padding:6px 0 6px 14px;color:var(--text-secondary);
+  border-left:2px solid var(--border);border-bottom:none;transition:color .15s,border-color .15s}
+.toc a:hover,.toc a.active{color:var(--accent);border-left-color:var(--accent)}
+
+/* ===== PROSE ===== */
+.prose{min-width:0;order:1}
+.prose section{margin-bottom:48px;scroll-margin-top:24px}
+.prose h2{margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.prose p{margin:0 0 16px;max-width:74ch}
+.prose ul,.prose ol{margin:0 0 16px;padding-left:1.35em;max-width:74ch}
+.prose li{margin-bottom:10px}
+.prose li>ul,.prose li>ol{margin-top:10px}
+.prose ol li::marker{font-variant-numeric:tabular-nums;font-weight:600;color:var(--accent)}
+.prose strong{font-weight:650}
+code{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  font-size:.875em;background:var(--code-bg);color:var(--code-text);
+  padding:.15em .38em;border-radius:5px;border:1px solid var(--border);white-space:nowrap}
+pre{background:var(--pre-bg);color:var(--pre-text);border:1px solid var(--pre-border);
+  border-radius:10px;padding:18px 20px;overflow-x:auto;margin:0 0 20px;box-shadow:var(--shadow)}
+pre code{background:none;border:none;padding:0;color:inherit;font-size:.875rem;
+  white-space:pre;line-height:1.6}
+
+/* ===== TABLE ===== */
+.table-wrap{overflow-x:auto;margin:0 0 20px;border:1px solid var(--border);
+  border-radius:10px;background:var(--surface);box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;font-size:.9375rem}
+th,td{text-align:left;padding:11px 16px;border-bottom:1px solid var(--border);vertical-align:top}
+th{font-weight:650;font-size:.8125rem;letter-spacing:.03em;text-transform:uppercase;
+  color:var(--text-secondary);background:var(--surface-hover);white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--surface-hover)}
+td code{white-space:nowrap}
+
+/* ===== CALLOUT ===== */
+.callout{display:flex;gap:14px;background:var(--surface);border:1px solid var(--border);
+  border-left:3px solid var(--accent);border-radius:10px;padding:18px 20px;margin:0 0 20px;
+  box-shadow:var(--shadow)}
+.callout .ico{flex:0 0 auto;color:var(--accent);margin-top:2px}
+.callout p:last-child{margin-bottom:0}
+.callout.warn{border-left-color:var(--warning)} .callout.warn .ico{color:var(--warning)}
+.callout.next{border-left-color:var(--positive)} .callout.next .ico{color:var(--positive)}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.animate{animation:fadeInUp .55s ease-out both}
+.animate.delay-1{animation-delay:.06s}.animate.delay-2{animation-delay:.12s}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .5s ease,transform .5s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .reveal{opacity:1;transform:none}
+}
+
+/* ===== MENU ===== */
+.viz-menu{position:fixed;top:16px;right:16px;z-index:9999}
+.viz-menu-toggle{width:44px;height:44px;border-radius:12px;background:var(--surface);
+  border:1px solid var(--border);color:var(--text);cursor:pointer;display:flex;
+  align-items:center;justify-content:center;box-shadow:var(--shadow);transition:background .2s}
+.viz-menu-toggle:hover{background:var(--surface-hover)}
+.viz-menu-dropdown{position:absolute;top:52px;right:0;min-width:196px;background:var(--surface);
+  border:1px solid var(--border);border-radius:12px;padding:8px;box-shadow:var(--shadow);
+  opacity:0;visibility:hidden;transform:translateY(-8px);transition:all .2s}
+.viz-menu-dropdown.open{opacity:1;visibility:visible;transform:translateY(0)}
+.viz-menu-dropdown button{width:100%;padding:10px 12px;border:none;border-radius:8px;
+  background:transparent;color:var(--text);font-size:.875rem;font-family:inherit;cursor:pointer;
+  text-align:left;display:flex;align-items:center;gap:10px;transition:background .15s}
+.viz-menu-dropdown button:hover{background:var(--surface-hover)}
+.viz-menu-dropdown svg{flex:0 0 auto;color:var(--text-secondary)}
+
+.skip-to-content{position:absolute;top:-60px;left:6px;background:var(--accent);color:#fff;
+  padding:8px 14px;border-radius:6px;z-index:10000;transition:top .2s}
+.skip-to-content:focus{top:6px}
+
+.doc-foot{grid-column:1 / -1;margin-top:16px;padding-top:24px;border-top:1px solid var(--border);
+  font-size:.8125rem;color:var(--text-secondary);display:flex;flex-wrap:wrap;gap:8px 18px}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width:900px){
+  .shell{grid-template-columns:minmax(0,1fr);gap:0}
+  .toc{position:static;order:0;margin-bottom:36px;padding:16px 18px;background:var(--surface);
+    border:1px solid var(--border);border-radius:10px}
+  .doc-head{padding-top:44px}
+}
+@media (max-width:480px){
+  .shell{padding:0 16px 64px}
+  th,td{padding:10px 12px}
+}
+
+/* ===== PRINT ===== */
+@media print{
+  body{background:#fff!important;color:#000!important}
+  .viz-menu,.toc,.skip-to-content{display:none!important}
+  .shell{display:block;max-width:none;padding:0}
+  .reveal{opacity:1!important;transform:none!important}
+  pre{background:#f6f8fa!important;color:#111!important;border:1px solid #ddd}
+  pre code{color:#111!important}
+  .prose section,.table-wrap,.callout{break-inside:avoid}
+  *{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+}
+@page{margin:1in}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-to-content">Skip to content</a>
+
+<div class="viz-menu">
+  <button class="viz-menu-toggle" onclick="toggleMenu()" aria-label="Menu" aria-haspopup="true">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+      <line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/>
+    </svg>
+  </button>
+  <div class="viz-menu-dropdown" id="vizMenuDropdown" role="menu">
+    <button onclick="cycleTheme()" role="menuitem" aria-label="Toggle theme">
+      <svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"></svg>
+      <span id="themeLabel">Dark</span>
+    </button>
+    <button onclick="window.print()" role="menuitem" aria-label="Print or save as PDF">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
+      </svg>
+      <span>Print / PDF</span>
+    </button>
+  </div>
+</div>
+
+<main id="main-content" role="main">
+<div class="shell">
+
+  <header class="doc-head animate">
+    <span class="eyebrow"><span class="dot"></span>spec-flow &middot; skill guide</span>
+    <h1>ui-order</h1>
+    <p class="lede">모호한 UI 요청을 바로 구현하지 않고, 질문과 화면 주문서 초안으로 먼저 되묻는 스킬.</p>
+    <div class="badges">
+      <span class="badge">파일 쓰기는 --setup --apply 만</span>
+      <span class="badge">질문 최대 5개</span>
+      <span class="badge">차단형 프롬프트 없음</span>
+      <span class="badge">&ldquo;기본값으로 진행&rdquo;</span>
+    </div>
+  </header>
+
+  <nav class="toc animate delay-1" aria-label="목차">
+    <div class="toc-title">On this page</div>
+    <ol>
+      <li><a href="#quickstart">빠른 시작</a></li>
+      <li><a href="#summary">한 줄 요약</a></li>
+      <li><a href="#output">무엇을 만드는가</a></li>
+      <li><a href="#when">언제 쓰고 언제 안 쓰는가</a></li>
+      <li><a href="#usage">호출 형식</a></li>
+      <li><a href="#steps">동작 단계</a></li>
+      <li><a href="#example">예시</a></li>
+      <li><a href="#caveats">주의사항 / 제약</a></li>
+      <li><a href="#claude-md">CLAUDE.md 에 붙일 문구</a></li>
+      <li><a href="#project-default">프로젝트 기본 주문서 (선택)</a></li>
+    </ol>
+  </nav>
+
+  <article class="prose animate delay-2">
+
+    <section id="quickstart" data-reveal>
+      <h2>빠른 시작</h2>
+      <ol>
+        <li><code>/spec-flow:ui-order --setup</code> &mdash; 미리보기. 스택을 감지하고, 프로젝트 <code>CLAUDE.md</code> 에 넣을 블록을 출력만 한다. 아무것도 쓰지 않는다.</li>
+        <li><code>/spec-flow:ui-order --setup --apply</code> &mdash; 그 블록을 <code>CLAUDE.md</code> 끝에 넣는다 (<code>&lt;!-- ui-order:begin --&gt;</code> ~ <code>&lt;!-- ui-order:end --&gt;</code> 표식 안).</li>
+        <li><code>CLAUDE.md</code> 에서 <code>[화면]</code> 자리표시(<code>&lt;이 프로젝트의 화면 종류: ...&gt;</code>)를 이 프로젝트의 화면 종류로 고친다.</li>
+        <li>이제 그냥 &ldquo;버튼 만들어줘&rdquo;라고 하면, 슬래시 명령 없이도 질문과 주문서 초안으로 되묻는다.</li>
+      </ol>
+    </section>
+
+    <section id="summary" data-reveal>
+      <h2>한 줄 요약</h2>
+      <p>&ldquo;버튼 만들어줘&rdquo;, &ldquo;좀 예쁘게&rdquo;, &ldquo;폰에서도 되게&rdquo; 같은 모호한 UI 요청을 받으면 바로
+      구현하지 않는다. 요청을 UI/UX 용어의 칸에 대 보고 빠진 결정을 찾아, <strong>질문 최대 5개 +
+      기본값을 채운 화면 주문서 초안</strong>으로 먼저 답한 뒤 턴을 끝낸다.</p>
+      <p>AI 는 모호한 말을 임의로 해석하고 해피 패스만 만든다. 문제는 실력이 아니라
+      <strong>이름과 숫자가 빠진 주문</strong>이다.</p>
+    </section>
+
+    <section id="output" data-reveal>
+      <h2>무엇을 만드는가</h2>
+      <p>채팅 출력 하나가 산출물이다. 파일은 쓰지 않는다 &mdash; 예외는 <code>--setup --apply</code> 하나로, 프로젝트 <code>CLAUDE.md</code> 의 ui-order 표식 블록 안에만 쓴다.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>부분</th><th>내용</th></tr></thead>
+          <tbody>
+            <tr><td>질문</td><td>영향 큰 순서로 최대 5개. 각 질문에 구체적인 기본값이 붙는다</td></tr>
+            <tr><td>주문서 초안</td><td><code>[화면] [레이아웃] [내용] [부품] [상태] [토큰] [글자] [반응형] [접근성]</code> 중 관련 칸만. 사용자가 주지 않은 값은 <code>(기본값)</code> 표시</td></tr>
+            <tr><td>마무리 한 줄</td><td>&ldquo;기본값으로 진행&rdquo;이라고 답하면 초안대로 구현한다는 안내</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="when" data-reveal>
+      <h2>언제 쓰고 언제 안 쓰는가</h2>
+      <p><strong>쓴다</strong> — UI 요청에 부품 이름·숫자·상태가 빠져 있을 때. 예: &ldquo;버튼 만들어줘&rdquo;,
+      &ldquo;대시보드 만들어줘&rdquo;, &ldquo;알림 띄워줘&rdquo;, &ldquo;폰에서도 되게 해줘&rdquo;.</p>
+      <p><strong>안 쓴다:</strong></p>
+      <ul>
+        <li>요청이 이미 이름과 숫자를 다 담고 있을 때 &rarr; 스킬은 묻지 않고 바로 구현한다. 잘 쓴 요청을 귀찮게 하지 않는다.</li>
+        <li>UI 가 아닌 기능 설계 &rarr; <code>prd-to-trd</code>.</li>
+      </ul>
+    </section>
+
+    <section id="usage" data-reveal>
+      <h2>호출 형식</h2>
+<pre><code>/spec-flow:ui-order "&lt;UI request&gt;"
+/spec-flow:ui-order --setup [--apply] [--force] [--project &lt;dir&gt;]</code></pre>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>인자</th><th>필수</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr><td><code>"&lt;UI request&gt;"</code></td><td>예</td><td>사용자가 쓴 그대로의 UI 요청</td></tr>
+            <tr><td><code>--setup</code></td><td>—</td><td>프로젝트 <code>CLAUDE.md</code> 에 넣을 블록 미리보기 (쓰지 않음)</td></tr>
+            <tr><td><code>--apply</code></td><td>—</td><td><code>--setup</code> 과 함께: 블록을 실제로 쓴다</td></tr>
+            <tr><td><code>--force</code></td><td>—</td><td><code>--setup --apply</code> 와 함께: 이미 있는 표식 안의 내용을 교체</td></tr>
+            <tr><td><code>--project &lt;dir&gt;</code></td><td>—</td><td>대상 프로젝트 (기본: 현재 디렉터리의 git 최상위)</td></tr>
+            <tr><td><code>help</code> / <code>-h</code> / <code>--help</code></td><td>—</td><td>도움말만 출력</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="steps" data-reveal>
+      <h2>동작 단계</h2>
+      <ol>
+        <li><strong>대상 식별</strong> — 화면 종류와 부품을 찾고, 감각어는 용어집의 번역표로 정확한 말에 대응시킨다.</li>
+        <li><strong>칸 점검</strong> — 화면 칸 9개와 부품 계열별 칸(버튼이면 위계·크기·radius·상태·아이콘)에서 이름이나 숫자가 없는 칸을 표시한다.</li>
+        <li><strong>판단</strong> — 관련 칸이 전부 채워져 있으면 바로 구현. 아니면 4단계.</li>
+        <li><strong>주문서 초안 출력 후 턴 종료</strong> — 질문, 초안, 마무리 한 줄.</li>
+        <li><strong>다음 턴</strong> — 답을 초안에 합쳐 구현한다. &ldquo;기본값으로 진행&rdquo;이면 기본값을 적용하고 적용한 기본값 목록을 밝힌다.</li>
+      </ol>
+      <div class="callout">
+        <span class="ico" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="8.01"/><line x1="12" y1="11" x2="12" y2="16"/></svg></span>
+        <p>데이터를 보여주는 화면이면 <strong>로딩 = 스켈레톤, 빈 상태 = 엠프티 스테이트 + 다음 행동 버튼,
+        에러 = 재시도 버튼</strong> 세 가지를 묻든 기본값으로 넣든 반드시 주문서에 싣는다.</p>
+      </div>
+    </section>
+
+    <section id="example" data-reveal>
+      <h2>예시</h2>
+      <p>입력: <code>버튼 만들어줘</code></p>
+<pre><code>질문 (영향 큰 순)
+1. 어떤 행동의 버튼인가요? 위계: primary / secondary / ghost / destructive
+   — 기본값: primary 1개, 레이블 &quot;저장&quot;
+2. 취소 같은 두 번째 버튼이 필요한가요? — 기본값: 없음
+3. 누른 뒤 서버 처리가 있나요? — 기본값: 있음, 처리 중 disabled + 스피너
+4. 크기와 모양 — 기본값: 높이 40px, padding 12px 20px, radius 12px
+5. 아이콘을 넣을까요? — 기본값: 없음
+
+주문서 초안
+[부품] primary 버튼 1개, 레이블 &quot;저장&quot; (기본값)
+[상태] hover / focus-visible / disabled / loading (기본값)
+[토큰] 높이 40px, padding 12px 20px, radius 12px (기본값); Tailwind + shadcn/ui (기본값)
+[접근성] 포커스 링 유지, 명암비 4.5:1, 터치 영역 44px 이상 (기본값)
+
+&quot;기본값으로 진행&quot;이라고 답하면 위 초안대로 구현합니다.</code></pre>
+      <p>주요 기본값: 간격 8의 배수, radius 12px, 그림자 약하게, 타입 스케일 4단계, 본문 행간 1.6,
+      브레이크포인트 640/1024 모바일 퍼스트, 사이드바 240px &rarr; 1024 미만 드로어, 명암비 4.5:1,
+      터치 타깃 44px, Lucide outline 20px, 스택 미지정 시 Tailwind + shadcn/ui. 프로젝트에 이미 스택·토큰이 있으면 그쪽이 우선한다.</p>
+    </section>
+
+    <section id="caveats" data-reveal>
+      <h2>주의사항 / 제약</h2>
+      <div class="callout warn">
+        <span class="ico" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12" y2="17.01"/></svg></span>
+        <div>
+          <ul style="margin-bottom:0">
+            <li><strong>질문이 최종 출력이다.</strong> 실행 중간에 차단형 프롬프트를 쓰지 않는다. 질문과 초안을 출력하고 턴을 끝내며, 사용자는 평범한 다음 턴에 답한다.</li>
+            <li><strong>파일을 쓰지 않는다.</strong> 프로젝트는 기존 스택·토큰을 확인하려고 읽기만 한다. 예외는 <code>--setup --apply</code> 뿐이며, 프로젝트 <code>CLAUDE.md</code> 의 ui-order 표식 사이만 쓴다. 표식 밖의 바이트는 건드리지 않고, <code>CLAUDE.md</code> 가 <code>AGENTS.md</code> 심링크면 링크를 유지한 채 대상 파일에 쓴다. 표식이 이미 있으면 건너뛰고(<code>--force</code> 면 안쪽만 교체), 표식이 깨져 있으면 아무것도 쓰지 않고 실패한다.</li>
+            <li>질문은 최대 5개. 사용자가 신경 쓰지 않을 세부는 묻지 않고 <code>(기본값)</code> 으로 초안에 넣는다.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="claude-md" data-reveal>
+      <h2>CLAUDE.md 에 붙일 문구</h2>
+      <p>프로젝트의 <code>CLAUDE.md</code> 에 아래를 넣어 두면, 슬래시 명령 없이도 모호한 UI 요청마다 이 절차가 돈다. <strong><code>/spec-flow:ui-order --setup --apply</code> 가 이 블록과 아래 &ldquo;프로젝트 기본 주문서&rdquo; 블록을 한 번에 생성한다</strong> &mdash; 블록 문구의 원본은 헬퍼 <code>skills/ui-order/lib/setup_claude_md.py</code> 이고, 아래 사본은 손으로 붙이려는 사용자를 위한 참고용이다. 둘이 다르면 헬퍼가 맞다.</p>
+<pre><code>## UI 요청 규칙
+UI 요청이 모호하면 바로 구현하지 말고 `/spec-flow:ui-order` 절차로 먼저 되묻는다.
+모호한 요청 = 부품 이름·숫자·상태가 빠진 요청 (예: &quot;버튼 만들어줘&quot;, &quot;예쁘게&quot;, &quot;폰에서도 되게&quot;).
+되물을 항목: 위계(primary/secondary/ghost/destructive) · 크기·여백(padding, radius) ·
+상태(hover/focus-visible/disabled/loading) · 예외 화면(로딩/빈/에러) · 반응형(브레이크포인트).
+&quot;기본값으로 진행&quot;이라고 답하면 ui-order 기본값으로 구현하고, 적용한 기본값을 밝힌다.</code></pre>
+    </section>
+
+    <section id="project-default" data-reveal>
+      <h2>프로젝트 기본 주문서 (선택)</h2>
+      <p>위 규칙 아래에 프로젝트 성격에 맞게 한 번 고친 화면 주문서를 붙여 두면, ui-order 는 <code>checklist.md</code> 기본값 대신 이 값을 <code>(프로젝트 기본값)</code> 으로 초안에 채운다. 매 요청마다 같은 스택·토큰을 다시 설명할 필요가 없어진다. 출발점은 <code>skills/ui-order/references/order-template.md</code> 의 one-shot example 이다. <code>--setup</code> 은 감지한 스택은 그대로, 감지 못 한 값은 <code>(기본값)</code> 표시를 붙여 채우고, <code>[화면]</code> 은 직접 고칠 자리표시로 남긴다. 아래는 그 자리를 다 채운 모습이다.</p>
+<pre><code>## 화면 주문서 (프로젝트 기본값)
+[화면]     대시보드 + 목록-상세 + 설정, 로그인은 SSO 버튼 하나, 없는 주소는 404.
+[레이아웃] 상단 56px 앱 바 + 좌측 240px 고정 사이드바 + 본문. 컨테이너 max-width 1200px.
+[내용]     본문은 카드 그리드(데스크톱 3열 / 태블릿 2열 / 모바일 1열, gap 16px).
+[부품]     검색 입력, 필터는 칩, 행 클릭 시 상세는 팝오버가 아니라 모달로.
+[상태]     로딩은 스켈레톤, 0건은 엠프티 스테이트(생성 버튼 포함), 실패는 재시도 버튼이 있는 에러 상태.
+[토큰]     간격 8의 배수, 라운드 12px, 그림자 약하게, 글자 크기 4단계(Display/Heading/Body/Caption).
+[글자]     본문 16px · 행간 1.6, 카드 제목은 2줄 line-clamp, 숫자 열은 tabular-nums.
+[반응형]   모바일 퍼스트, 브레이크포인트 640/1024. 1024px 미만에서 사이드바는 드로어로.
+[접근성]   포커스 링 유지, 명암비 4.5:1 이상, 아이콘 버튼에 aria-label.
+스택: Tailwind + shadcn/ui, 미니멀 스타일, 라이트/다크 모드 둘 다.
+화면 단위 작업은 와이어프레임 먼저 → 스크린샷 확인 → 스타일 입히기.</code></pre>
+      <p>출처: 용어와 기본값은 <a href="https://geniuskey.github.io/vibe-coding/ui-ux/">바이브 코더를 위한 UI/UX 용어 사전</a>(geniuskey)을 바탕으로 요약·재구성했다.</p>
+    </section>
+
+  </article>
+
+  <footer class="doc-foot">
+    <span>spec-flow plugin &middot; skill guide</span>
+    <span>Source: <code>docs/skill-guides/ui-order.md</code></span>
+  </footer>
+
+</div>
+</main>
+
+<script>
+var SUN='<circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"/><line x1="18.4" y1="18.4" x2="19.8" y2="19.8"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.2" y1="19.8" x2="5.6" y2="18.4"/><line x1="18.4" y1="5.6" x2="19.8" y2="4.2"/>';
+var MOON='<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';
+
+function toggleMenu(){var d=document.getElementById('vizMenuDropdown');if(d)d.classList.toggle('open');}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.viz-menu')){var d=document.getElementById('vizMenuDropdown');if(d)d.classList.remove('open');}
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){var d=document.getElementById('vizMenuDropdown');if(d)d.classList.remove('open');}
+});
+
+var savedTheme=null;
+try{savedTheme=localStorage.getItem('viz-theme');}catch(e){}
+var currentTheme=savedTheme||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+function applyTheme(t){
+  document.documentElement.className='theme-'+t;
+  var i=document.getElementById('themeIcon'),l=document.getElementById('themeLabel');
+  if(i)i.innerHTML=(t==='dark'?SUN:MOON);
+  if(l)l.textContent=(t==='dark'?'Light':'Dark');
+  try{localStorage.setItem('viz-theme',t);}catch(e){}
+  currentTheme=t;
+}
+function cycleTheme(){applyTheme(currentTheme==='dark'?'light':'dark');}
+applyTheme(currentTheme);
+
+document.querySelectorAll('[data-reveal]').forEach(function(el){el.classList.add('reveal');});
+var revealObserver=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');revealObserver.unobserve(e.target);}});
+},{threshold:0.08});
+document.querySelectorAll('.reveal').forEach(function(el){revealObserver.observe(el);});
+
+var tocLinks=document.querySelectorAll('.toc a');
+var spyObserver=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){
+      tocLinks.forEach(function(a){a.classList.toggle('active',a.getAttribute('href')==='#'+e.target.id);});
+    }
+  });
+},{rootMargin:'-10% 0px -70% 0px'});
+document.querySelectorAll('.prose section[id]').forEach(function(s){spyObserver.observe(s);});
+</script>
+</body>
+</html>
