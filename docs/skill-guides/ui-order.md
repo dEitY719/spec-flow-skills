@@ -9,6 +9,8 @@
 3. `CLAUDE.md` 에서 `[화면]` 자리표시(`<이 프로젝트의 화면 종류: ...>`)를 이 프로젝트의
    화면 종류로 고친다.
 4. 이제 그냥 "버튼 만들어줘"라고 하면, 슬래시 명령 없이도 질문과 주문서 초안으로 되묻는다.
+5. 기존 코드 점검 — `/spec-flow:ui-order --check` 로 이미 있는 프런트엔드를 읽기 전용으로
+   점검하고, 코드가 실제로 쓰는 값으로 주문서 블록을 고칠 제안을 받는다.
 
 ## 한 줄 요약
 
@@ -26,7 +28,8 @@ hover·disabled·loading 은 빠지며, 데이터 화면은 로딩·빈 상태·
 ## 무엇을 만드는가
 
 채팅 출력 하나가 산출물이다. 파일은 쓰지 않는다 — 예외는 `--setup --apply` 하나로,
-프로젝트 `CLAUDE.md` 의 ui-order 표식 블록 안에만 쓴다.
+프로젝트 `CLAUDE.md` 의 ui-order 표식 블록 안에만 쓴다. `--check` 의 산출물은 점검
+보고서(채팅 출력)이며 역시 아무것도 쓰지 않는다.
 
 | 부분 | 내용 |
 |---|---|
@@ -51,6 +54,7 @@ hover·disabled·loading 은 빠지며, 데이터 화면은 로딩·빈 상태·
 ```
 /spec-flow:ui-order "<UI request>"
 /spec-flow:ui-order --setup [--apply] [--force] [--project <dir>]
+/spec-flow:ui-order --check [--project <dir>]
 ```
 
 | 인자 | 필수 | 설명 |
@@ -59,6 +63,7 @@ hover·disabled·loading 은 빠지며, 데이터 화면은 로딩·빈 상태·
 | `--setup` | — | 프로젝트 `CLAUDE.md` 에 넣을 블록 미리보기 (쓰지 않음) |
 | `--apply` | — | `--setup` 과 함께: 블록을 실제로 쓴다 |
 | `--force` | — | `--setup --apply` 와 함께: 이미 있는 표식 안의 내용을 교체 |
+| `--check` | — | 기존 프런트엔드 코드의 UI 기준 점검 보고서 (읽기 전용) |
 | `--project <dir>` | — | 대상 프로젝트 (기본: 현재 디렉터리의 git 최상위) |
 | `help` / `-h` / `--help` | — | 도움말만 출력 |
 
@@ -98,6 +103,52 @@ hover·disabled·loading 은 빠지며, 데이터 화면은 로딩·빈 상태·
 "기본값으로 진행"이라고 답하면 위 초안대로 구현합니다.
 ```
 
+## 기존 코드 점검 (`--check`)
+
+이미 만들어진 프런트엔드에서 흐릿하거나 제각각인 UI 기준을 찾는다. 읽기 전용이다 —
+`CLAUDE.md` 도 쓰지 않는다. 두 단계로 동작한다.
+
+1. **결정적 스캐너** (`lib/check_frontend.py`) — `*.tsx *.jsx *.ts *.js *.vue *.svelte
+   *.css *.scss *.html` 을 훑는다 (`node_modules`, `.git`, `dist`, `build`, `.next`,
+   `out`, `coverage`, `*.min.*`, 테스트 파일 제외).
+2. **AI 판단** — 스캐너가 가리킨 파일을 읽고 기계가 못 보는 것을 판단한다.
+
+| 점검 | 무엇을 찾는가 |
+|---|---|
+| `icon-set` (high) | Lucide 가 아닌 아이콘 세트 import (react-icons, Heroicons, MUI Icons, Font Awesome ...). 아이콘은 Lucide 단일 세트가 기본 |
+| `icon-emoji` (med) | 아이콘 자리에 쓴 이모지 |
+| `a11y-icon-button` (high) | 아이콘만 있고 `aria-label` 이 없는 버튼 |
+| `a11y-focus` / `a11y-img-alt` (med) | `focus-visible` 없는 `outline-none`, `alt` 없는 `<img>` |
+| `token-spacing` / `token-radius` (med/low) | 4·8 배수가 아닌 간격, 4종 이상 섞인 radius |
+| `color-hardcode` (med) | 테마·토큰 파일 밖의 `#hex` / `rgb()` / `hsl()` (파일별 개수) |
+| `breakpoints` (med) | 주문서 `[반응형]` 밖의 브레이크포인트 3개 이상 |
+| `exception-states` (high, AI) | 데이터를 불러오는 화면에 로딩·빈 상태·에러 처리가 빠짐 |
+| `overlay-mix` (med, AI) | 같은 목적(확인, 완료 알림)에 모달·`window.confirm`·토스트를 섞어 씀 |
+| `order-unconfirmed` (med) | 주문서 블록 없음, `[화면]` 자리표시 그대로, `(기본값)` 과 코드가 다름 |
+
+보고서는 영향 큰 순서로 묶이고, 항목마다 `file:line` 근거와 고칠 때 쓸 정확한 용어가
+붙는다. 끝에는 **주문서 반영 제안** — 코드가 실제로 굳힌 값을 `CLAUDE.md` 블록에 적는
+제안 — 이 온다. 적용은 사용자가 직접 편집하거나 `--setup --apply --force` 로 한다.
+
+```
+UI 기준 점검 — web/ (파일 42개, high 3 · med 6 · low 1)
+
+### 아이콘 (high)
+- src/Toolbar.tsx:12 — react-icons/fa import. Lucide 단일 세트로 교체 (lucide-react, outline 20px).
+- src/Header.tsx:31 — 아이콘만 있는 버튼에 이름 없음. 아이콘 버튼 aria-label="닫기" 추가.
+
+### 예외 상태 (high)
+- src/pages/Orders.tsx:8 — useQuery 결과를 바로 map. 0건이면 빈 화면.
+  엠프티 스테이트 + 다음 행동 버튼("주문 만들기"), 에러 상태 + 재시도 버튼 추가.
+
+### 토큰 (med)
+- radius 5종 (rounded-lg x24, rounded-md x6, 6px x2 ...). radius 토큰 8px 하나로 통일.
+
+주문서 반영 제안
+- [화면] 자리표시 -> "대시보드 + 목록-상세 + 설정"
+- [토큰] 라운드 12px (기본값) -> 라운드 8px (코드 기준)
+```
+
 ## 주요 기본값
 
 간격 8의 배수(4/8/16/24/40), radius 12px, 그림자 약하게, 타입 스케일 4단계(Display
@@ -112,8 +163,9 @@ hover·disabled·loading 은 빠지며, 데이터 화면은 로딩·빈 상태·
 - **질문이 최종 출력이다.** 실행 중간에 AskUserQuestion 같은 차단형 프롬프트를 쓰지
   않는다. 질문과 초안을 출력하고 턴을 끝내며, 사용자는 평범한 다음 턴에 답한다. 그래서
   이 repo 의 "Non-interactive by design" 규칙과 충돌하지 않는다.
-- **파일을 쓰지 않는다.** 프로젝트는 기존 스택·토큰을 확인하려고 읽기만 한다. 예외는
-  `--setup --apply` 뿐이며, 프로젝트 `CLAUDE.md` 의 ui-order 표식 사이만 쓴다. 표식 밖의
+- **파일을 쓰지 않는다.** 프로젝트는 기존 스택·토큰을 확인하려고 읽기만 한다
+  (`--check` 도 읽기 전용). 예외는 `--setup --apply` 뿐이며,
+  프로젝트 `CLAUDE.md` 의 ui-order 표식 사이만 쓴다. 표식 밖의
   바이트는 건드리지 않고, `CLAUDE.md` 가 `AGENTS.md` 심링크면 링크를 유지한 채 대상 파일에
   쓴다. 표식이 이미 있으면 건너뛰고(`--force` 면 안쪽만 교체), 표식이 깨져 있으면 아무것도
   쓰지 않고 실패한다.

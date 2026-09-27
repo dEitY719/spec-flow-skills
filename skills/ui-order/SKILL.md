@@ -4,13 +4,13 @@ description: >-
   모호한 UI 요청을 바로 구현하지 않고, 빠진 결정을 되묻는 질문과 기본값을 채운
   화면 주문서 초안으로 먼저 답한다. Use for /spec-flow:ui-order, "버튼 만들어줘",
   "좀 예쁘게 해줘", "폰에서도 되게 해줘", "ui-order 설정해줘",
-  "clarify a vague UI request before building".
+  "프런트엔드 UI 기준 점검해줘", "clarify a vague UI request before building".
 license: MIT
 allowed-tools: Read, Glob, Grep, Bash
 metadata:
   model_recommendation:
     tier: sonnet
-    reason: "vague UI request -> slot gap check + clarifying questions + draft order; judgment; writes only the CLAUDE.md block under --setup --apply"
+    reason: "vague UI request -> slot gap check + clarifying questions + draft order; judgment; writes only the CLAUDE.md block under --setup --apply; --check is read-only"
     claude: prefer
     non_claude: advisory-only
 ---
@@ -23,26 +23,25 @@ metadata:
 기본값이 채워진 화면 주문서 초안**으로 되돌려준다. 다음 턴의 답이나 "기본값으로 진행"
 으로 확정된 주문서를 구현한다.
 
-## Help
+## Modes
 
-If the argument is `-h`, `--help`, or `help`, read `references/help.md` and output
-its content verbatim, then stop.
-
-## Setup mode
-
-If the argument starts with `--setup`, run `lib/setup_claude_md.py` via
-`$CLAUDE_PLUGIN_ROOT` (unset -> stop; never guess a path) exactly as
-[`references/setup.md`](references/setup.md) says. Dry-run unless `--apply`. Then stop.
+- `-h` / `--help` / `help` -> output `references/help.md` verbatim, then stop.
+- `--setup` -> run `lib/setup_claude_md.py` via `$CLAUDE_PLUGIN_ROOT` (unset -> stop;
+  never guess a path) exactly as [`references/setup.md`](references/setup.md) says.
+  Dry-run unless `--apply`. Then stop.
+- `--check` -> read-only audit of existing frontend code: run `lib/check_frontend.py`
+  the same way, judge its findings, and print the Korean report exactly as
+  [`references/check.md`](references/check.md) says. Writes nothing. Then stop.
 
 ## Contract
 
 - **The questions are the final output, not a mid-run prompt.** Never call
   AskUserQuestion or any blocking prompt. Print the questions and the draft order,
   then end the turn. The user replies in a normal next turn.
-- **Writes files only under `--setup --apply`**: only the project `CLAUDE.md`, only
-  between the ui-order markers. Otherwise read the project only to detect a stack
-  (Tailwind, shadcn/ui, MUI, ...) and tokens; an existing convention beats defaults.
-  A 화면 주문서 block in the project's `CLAUDE.md` is the strongest default source.
+- **Writes files only under `--setup --apply`** (only the project `CLAUDE.md`, only
+  between the ui-order markers; `--check` is read-only). Otherwise read the project
+  only for its stack (Tailwind, shadcn/ui, MUI, ...) and tokens; an existing
+  convention beats defaults, and a 화면 주문서 block in `CLAUDE.md` beats both.
 - **Do not nag a well-specified request.** If it already names parts and numbers,
   build it.
 
@@ -93,6 +92,7 @@ must carry all three, asked or defaulted — AI builds only the happy path other
 | `references/glossary.md` | Step 1 — term lookup, confusing pairs, vague-phrase translation |
 | `references/order-template.md` | Step 4 — output shape and a worked example |
 | `references/setup.md` | `--setup` only |
+| `references/check.md` | `--check` only |
 | `references/help.md` | `help` argument only |
 
 Source vocabulary: "바이브 코더를 위한 UI/UX 용어 사전" (geniuskey),

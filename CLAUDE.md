@@ -99,7 +99,9 @@ Three things this repo depends on are owned by `dEitY719/harness-skills`
   `claude-to-codex` write local files and never edit the source document.
   `ui-order` writes a file only under `--setup --apply`: the project's
   `CLAUDE.md` (through a symlink, if it is one), and only between its
-  `<!-- ui-order:begin -->` / `<!-- ui-order:end -->` markers.
+  `<!-- ui-order:begin -->` / `<!-- ui-order:end -->` markers. Its `--check`
+  audit is read-only: it reports findings and suggested block edits, and writes
+  nothing.
   Nothing here pushes, merges, or force-pushes. Neither `gh`-touching skill
   auto-creates labels or milestones, and neither rolls back on a mid-flow
   failure — it reports partial state instead. Do not "improve" any of that.

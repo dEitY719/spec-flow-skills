@@ -70,6 +70,7 @@ FRAMEWORKS = [("next", "Next.js"), ("nuxt", "Nuxt"), ("@sveltejs/kit", "SvelteKi
               ("react", "React"), ("vue", "Vue"), ("svelte", "Svelte")]
 LIBS = [("@mui/material", "MUI"), ("antd", "Ant Design"),
         ("@fluentui/react-components", "Fluent UI")]
+LUCIDE = ("lucide-react", "lucide-vue-next", "lucide-svelte", "lucide")
 
 
 def detect(project):
@@ -87,7 +88,7 @@ def detect(project):
     s["tailwind"] = "tailwindcss" in deps or bool(glob.glob(os.path.join(project, "tailwind.config.*")))
     s["shadcn"] = os.path.isfile(os.path.join(project, "components.json"))
     s["lib"] = next((n for k, n in LIBS if k in deps), None)
-    s["lucide"] = "lucide-react" in deps
+    s["lucide"] = any(k in deps for k in LUCIDE)
     return s
 
 
@@ -111,6 +112,20 @@ def build_block(s):
              + "스택: " + ", ".join(stack) + ".\n"
              + "화면 단위 작업은 와이어프레임 먼저 → 스크린샷 확인 → 스타일 입히기." + D + "\n")
     return inner.encode("utf-8")
+
+
+def block_span(data):
+    """Byte span (i, j) of the ui-order block's inner text, None when absent.
+
+    Raises ValueError(msg) on malformed markers. Shared with check_frontend.py.
+    """
+    bs, es = list(BEGIN_RE.finditer(data)), list(END_RE.finditer(data))
+    nb, ne = len(bs), len(es)
+    if nb == 0 and ne == 0:
+        return None
+    if nb == 1 and ne == 1 and bs[0].start() < es[0].start():
+        return bs[0].start() + len(BEGIN), es[0].start()
+    raise ValueError(f"malformed ui-order markers (begin={nb}, end={ne})")
 
 
 def project_dir(arg):
@@ -155,22 +170,18 @@ def main():
     except OSError as e:
         fail(f"cannot read {real}: {e}")
 
-    bs, es = list(BEGIN_RE.finditer(old)), list(END_RE.finditer(old))
-    nb, ne = len(bs), len(es)
-    if nb == 0 and ne == 0:
-        present = False
-    elif nb == 1 and ne == 1 and bs[0].start() < es[0].start():
-        present = True
-    else:
-        fail(f"malformed ui-order markers in {real} (begin={nb}, end={ne}); "
-             "fix them by hand, nothing written")
+    try:
+        span = block_span(old)
+    except ValueError as e:
+        fail(f"{e} in {real}; fix them by hand, nothing written")
+    present = span is not None
 
     if not present:
         sep = b"" if not old else (b"" if old.endswith(b"\n") else b"\n") + b"\n"
         new = old + sep + BEGIN + b"\n" + inner + END + b"\n"
         action = "appended" if exists else "created"
     elif a.force:
-        i, j = bs[0].start() + len(BEGIN), es[0].start()
+        i, j = span
         new = old[:i] + b"\n" + inner + old[j:]
         action = "replaced"
     else:
