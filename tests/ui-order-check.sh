@@ -71,6 +71,11 @@ EOF
 cat >"$P/src/theme.ts" <<'EOF'
 export const colors = { primary: "#0055ff", danger: "rgb(200, 0, 0)" };
 EOF
+# review (agy, PR #17): a "theme"-named component is not a token file; ~icons/lucide is Lucide
+cat >"$P/src/ThemeToggle.tsx" <<'EOF'
+import Sun from "~icons/lucide/sun";
+export const T = () => <span style={{ color: "#ff0000" }} />;
+EOF
 cat >"$P/src/List.tsx" <<'EOF'
 import { useQuery } from "@tanstack/react-query";
 export function List() {
@@ -124,6 +129,7 @@ grep -F 'token-radius|med|' "$WORK/out" | grep -qF 'rounded-[7px] x1' || fail "r
 has 'color-hardcode|med|src/Bad.tsx:4|2 color literal(s)'
 hasnt 'color-hardcode|med|src/Good.tsx'
 hasnt 'color-hardcode|med|src/theme.ts'
+has 'color-hardcode|med|src/ThemeToggle.tsx:2|1 color literal(s)'
 hasnt 'color-hardcode|med|src/styles.css'
 
 # --- 3. a11y --------------------------------------------------------------------
@@ -140,6 +146,7 @@ hasnt 'a11y-focus|med|src/styles.css:4|'
 # --- 4. Lucide-only icon policy --------------------------------------------------
 has 'icon-set|high|src/Bad.tsx:1|react-icons/fa -> replace with the Lucide equivalent (lucide-react)'
 hasnt 'icon-set|high|src/Good.tsx'
+hasnt 'icon-set|high|src/ThemeToggle.tsx'
 has 'icon-emoji|med|src/Bad.tsx:9|U+1F680'
 has 'icon-set|low|package.json:0|icons used but no Lucide dependency'
 
@@ -156,7 +163,7 @@ has 'order-block|info|CLAUDE.md:3|present, 2 (기본값)'
 
 # --- exclusions ----------------------------------------------------------------------
 for x in "|node_modules/" "|dist/" "vendor.min.js" "Bad.test.tsx"; do hasnt "$x"; done
-tail -n1 "$WORK/out" | grep -qE '^\[OK\] spec-flow:ui-order check target=.* files=5 findings=[0-9]+ high=[0-9]+ med=[0-9]+ low=[0-9]+$' \
+tail -n1 "$WORK/out" | grep -qE '^\[OK\] spec-flow:ui-order check target=.* files=6 findings=[0-9]+ high=[0-9]+ med=[0-9]+ low=[0-9]+$' \
     || fail "summary line: $(tail -n1 "$WORK/out")"
 
 # --- clean project: Lucide dep, confirmed block, no findings ---------------------------

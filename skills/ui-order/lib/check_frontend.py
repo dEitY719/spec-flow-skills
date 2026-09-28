@@ -117,7 +117,7 @@ class Scan:
         lines = text.split("\n")
         lineno = lambda pos: text.count("\n", 0, pos) + 1  # noqa: E731
         style = ext in STYLE_EXTS
-        themeish = ("tailwind.config" in low or "theme" in low or "tokens" in low)
+        themeish = "tailwind.config" in low or re.search(r"(?:^|/)(?:[\w-]*-)?(?:themes?|tokens?)(?:/|\.)", low)
 
         # 1. spacing (per line, worst severity) + radius inventory
         for n, ln in enumerate(lines, 1):
@@ -193,7 +193,7 @@ class Scan:
         for n, ln in enumerate(lines, 1):
             for spec in SPEC_RE.findall(ln):
                 lib = next((x for x in ICON_LIBS if x in spec), None)
-                if lib:
+                if lib and "lucide" not in spec:  # ~icons/lucide/*, @iconify-icons/lucide are Lucide
                     self.uses_icons = True
                     pkg = {".vue": "lucide-vue-next", ".svelte": "lucide-svelte"}.get(ext, "lucide-react")
                     self.add("icon-set", "high", rel, n,
