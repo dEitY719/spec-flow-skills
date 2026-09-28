@@ -102,8 +102,7 @@ def px(num, unit):
 
 
 class Scan:
-    def __init__(self, root):
-        self.root = root
+    def __init__(self):
         self.out = []
         self.radius = {}   # value -> [count, first (file, line)]
         self.widths = {}   # px -> first (file, line)
@@ -258,7 +257,7 @@ def order_block(root, scan):
     """Order-block facts; returns the breakpoint set the block chose (or the default)."""
     chosen = {640, 1024}
     try:
-        with open(os.path.realpath(os.path.join(root, "CLAUDE.md")), "rb") as f:
+        with open(os.path.join(root, "CLAUDE.md"), "rb") as f:
             data = f.read()
     except FileNotFoundError:
         data = b""
@@ -295,7 +294,7 @@ def main():
         print(f"[FAIL] spec-flow:ui-order check: project dir not found: {root}", file=sys.stderr)
         sys.exit(1)
 
-    scan, nfiles = Scan(root), 0
+    scan, nfiles = Scan(), 0
     try:
         for d, dirs, files in os.walk(root):
             dirs[:] = sorted(x for x in dirs if x not in SKIP_DIRS)
