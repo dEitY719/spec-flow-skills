@@ -3,9 +3,12 @@
 Detailed substeps for the issue creation phase.
 
 Resolve the bundled helper via `$CLAUDE_PLUGIN_ROOT` — the **plugin root**
-(the directory holding `skills/`), not this file's own directory. Claude Code
-sets it; elsewhere export the `SKILL.md` path minus its
-`skills/trd-to-issues/SKILL.md` suffix. Unset → stop; never guess a path.
+(the directory holding `skills/`), not this file's own directory. Claude Code sets it for a plugin install only; a symlinked personal skill
+(`<config dir>/skills/trd-to-issues` -> clone) gets none. Then export it from the skill's
+"Base directory" (the harness prints it; never `$PWD`):
+`export CLAUDE_PLUGIN_ROOT=$(readlink -f "<Base directory>/../..")`.
+Elsewhere export the `SKILL.md` path minus its `skills/trd-to-issues/SKILL.md`
+suffix. Still unset → stop; never guess a path.
 
 ```bash
 LIB="$CLAUDE_PLUGIN_ROOT/skills/trd-to-issues/lib/apply_plan.py"

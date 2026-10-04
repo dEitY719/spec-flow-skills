@@ -7,8 +7,12 @@ uses the project defaults instead of `checklist.md`.
 ## Run
 
 Resolve the helper via `$CLAUDE_PLUGIN_ROOT` (the plugin root, the directory
-holding `skills/`). Claude Code sets it; elsewhere export the `SKILL.md` path minus
-its `skills/ui-order/SKILL.md` suffix. Unset -> stop with
+holding `skills/`). Claude Code sets it for a plugin install only; a symlinked personal skill
+(`<config dir>/skills/ui-order` -> clone) gets none. Then export it from the skill's
+"Base directory" (the harness prints it; never `$PWD`):
+`export CLAUDE_PLUGIN_ROOT=$(readlink -f "<Base directory>/../..")`.
+Elsewhere export the `SKILL.md` path minus its `skills/ui-order/SKILL.md` suffix.
+Still unset -> stop with
 `[FAIL] spec-flow:ui-order: CLAUDE_PLUGIN_ROOT unset`; never guess a path.
 
 ```bash
