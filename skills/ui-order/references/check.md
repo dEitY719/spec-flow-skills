@@ -6,8 +6,9 @@ no blocking prompt.
 
 ## Run
 
-Same plugin-root rule as `--setup`: resolve the helper via `$CLAUDE_PLUGIN_ROOT`,
-stop with `[FAIL] spec-flow:ui-order: CLAUDE_PLUGIN_ROOT unset` when it is unset,
+Same plugin-root rule as `--setup` (including the personal-skill export from the
+"Base directory": `references/setup.md`): resolve the helper via
+`$CLAUDE_PLUGIN_ROOT`, stop with `[FAIL] spec-flow:ui-order: CLAUDE_PLUGIN_ROOT unset` when it is unset,
 never guess a path.
 
 ```bash
