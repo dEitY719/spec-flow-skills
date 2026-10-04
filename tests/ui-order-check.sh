@@ -170,7 +170,7 @@ tail -n1 "$WORK/out" | grep -qE '^\[OK\] spec-flow:ui-order check target=.* file
 C="$WORK/clean"; mkdir -p "$C/src"
 printf '{"dependencies": {"lucide-react": "0.1.0"}}\n' >"$C/package.json"
 cp "$P/src/Good.tsx" "$C/src/"
-printf '<!-- ui-order:begin -->\n[화면]     대시보드\n[반응형]   640/1024\n<!-- ui-order:end -->\n' >"$C/CLAUDE.md"
+printf '<!-- ui-order:begin -->\n[화면]     대시보드. 새 화면은 `app/<name>.tsx`\n[반응형]   640/1024\n<!-- ui-order:end -->\n' >"$C/CLAUDE.md"
 python3 "$PY" --project "$C" >"$WORK/out"
 tail -n1 "$WORK/out" | grep -q 'files=1 findings=0 high=0 med=0 low=0$' || fail "clean project: $(cat "$WORK/out")"
 

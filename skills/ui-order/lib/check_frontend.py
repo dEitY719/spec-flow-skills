@@ -276,7 +276,7 @@ def order_block(root, scan):
     defaults = 0
     for k, ln in enumerate(block):
         defaults += ln.count("(기본값)")
-        if ln.startswith("[화면]") and re.search(r"<[^>]+>", ln):
+        if ln.startswith("[화면]") and re.fullmatch(r"<[^>]+>", re.sub(r"`[^`]*`", "", ln[4:]).strip()):
             scan.add("order-unconfirmed", "med", "CLAUDE.md", base + k,
                      "[화면] is still the <...> placeholder -> 이 프로젝트의 화면 종류로 확정")
         if ln.startswith("[반응형]"):
