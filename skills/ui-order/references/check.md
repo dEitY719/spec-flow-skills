@@ -29,13 +29,13 @@ CHECK_ID|severity|file:line|detail
 [OK] spec-flow:ui-order check target=<dir> files=<n> findings=<n> high=<n> med=<n> low=<n>
 ```
 
-`info` lines are facts for Layer B and are not counted. Line 0 = whole file.
+`info` lines are facts for Layer B and are not counted. Line 0 = whole file. In a git repo only tracked + untracked-not-ignored files are scanned (`.gitignore` is honoured); outside git, a walk skipping `SKIP_DIRS`.
 
 | Check | Severity | Fires on |
 |-------|----------|----------|
 | `icon-set` | high | Import from a non-Lucide icon library (react-icons, @heroicons, @mui/icons-material, @fortawesome, @tabler/icons, phosphor, @radix-ui/react-icons, ...) |
-| `icon-set` | low | Icons in use but no Lucide dependency in `package.json` |
-| `icon-emoji` | med | Emoji used as an icon in markup or a string literal |
+| `icon-set` | high | Icons in use but no Lucide dependency in `package.json` |
+| `icon-emoji` | high | Emoji used as an icon in markup or a string literal |
 | `a11y-icon-button` | high | `<button>`/`<Button>` whose only child is an icon, svg or emoji, with no `aria-label` / `aria-labelledby` / `title` |
 | `a11y-focus` | med | `outline-none` / `outline: none` with no `focus-visible` in the same element or rule |
 | `a11y-img-alt` | med | `<img>` without `alt` |

@@ -147,8 +147,8 @@ hasnt 'a11y-focus|med|src/styles.css:4|'
 has 'icon-set|high|src/Bad.tsx:1|react-icons/fa -> replace with the Lucide equivalent (lucide-react)'
 hasnt 'icon-set|high|src/Good.tsx'
 hasnt 'icon-set|high|src/ThemeToggle.tsx'
-has 'icon-emoji|med|src/Bad.tsx:9|U+1F680'
-has 'icon-set|low|package.json:0|icons used but no Lucide dependency'
+has 'icon-emoji|high|src/Bad.tsx:9|U+1F680'
+has 'icon-set|high|package.json:0|icons used but no Lucide dependency'
 
 # --- 5. breakpoints: 700/900/1100 beyond the block's 640/1024 --------------------
 has 'breakpoints|med|src/styles.css:5|3 widths beyond 640/1024: 700/900/1100'
@@ -182,5 +182,14 @@ rc=0; python3 "$PY" --bogus >/dev/null 2>&1 || rc=$?
 [ "$rc" = 2 ] || fail "usage error exit $rc, want 2"
 rc=0; python3 "$PY" --project "$WORK/missing" >/dev/null 2>&1 || rc=$?
 [ "$rc" = 1 ] || fail "missing project exit $rc, want 1"
+
+# --- .gitignore is honoured inside a git repo -------------------------------------------
+G="$WORK/gitproj"; mkdir -p "$G/gen" "$G/src"
+cp "$P/src/Bad.tsx" "$G/gen/"; cp "$P/src/Good.tsx" "$G/src/"
+printf 'gen/\n' >"$G/.gitignore"
+git -C "$G" init -q
+python3 "$PY" --project "$G" >"$WORK/out"
+hasnt 'gen/Bad.tsx'
+tail -n1 "$WORK/out" | grep -q 'files=1 ' || fail "gitignore: $(tail -n1 "$WORK/out")"
 
 echo "ok    ui-order check: read-only, deterministic, spacing, radius, color, a11y, lucide, breakpoints, data-view, order block, exclusions"
