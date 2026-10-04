@@ -62,6 +62,11 @@ TW_RADIUS_RE = re.compile(r"""(?<![\w:-])(rounded(?:-(?:tl|tr|br|bl|ss|se|es|ee|
 CSS_RADIUS_RE = re.compile(r"\bborder(?:-[a-z]+)*-?radius\s*:\s*([^;}\n,]+)", re.I)
 HEX_RE = re.compile(r"(?<![\w&])#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})\b")
 FUNC_COLOR_RE = re.compile(r"\b(?:rgba?|hsla?)\((?!\s*var\()")
+# Strings are matched (and kept) first so "http://x" is not a comment; comments become newlines.
+# ponytail: regex-literal / JSX-text quirks are ignored; a real tokenizer if they ever matter.
+CODE_RE = re.compile(r"""("(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`(?:\\.|[^`\\])*`)|//[^\n]*|/\*.*?\*/|<!--.*?-->""", re.S)
+# #123 is an issue ref unless it is a whole quoted string or a color property value.
+COLOR_CTX_RE = re.compile(r"(?:color|background|fill|stroke|border|outline|shadow)[\w-]*\s*:\s*$", re.I)
 TOKEN_DEF_RE = re.compile(r"--[\w-]+\s*:[^;}]*")  # custom-property definitions are the tokens
 MEDIA_RE = re.compile(r"@media[^{]*")
 MEDIA_W_RE = re.compile(r"(?:(?:min|max)-width\s*:\s*|width\s*[<>]=?\s*)(\d+(?:\.\d+)?)(px|em|rem)")
@@ -95,6 +100,17 @@ def open_tag_end(text, i):
         elif c == ">" and depth <= 0:
             return k + 1
     return len(text)
+
+
+def strip_comments(text):
+    return CODE_RE.sub(lambda m: m.group(1) or "\n" * m.group(0).count("\n"), text)
+
+
+def is_color(ln, m):
+    if not m.group(0)[1:].isdigit():
+        return True
+    q, pre = ln[m.start() - 1:m.start()], ln[:m.start()]
+    return bool(q and q in "\"'`" and ln[m.end():m.end() + 1] == q or COLOR_CTX_RE.search(pre))
 
 
 def px(num, unit):
@@ -147,9 +163,9 @@ class Scan:
 
         # 2. hard-coded colors, one finding per file
         if not themeish:
-            bare = [TOKEN_DEF_RE.sub("", ln) for ln in lines]
+            bare = [TOKEN_DEF_RE.sub("", ln) for ln in strip_comments(text).split("\n")]
             hits = [n for n, ln in enumerate(bare, 1)
-                    for _ in HEX_RE.findall(ln) + FUNC_COLOR_RE.findall(ln)]
+                    for _ in [m for m in HEX_RE.finditer(ln) if is_color(ln, m)] + FUNC_COLOR_RE.findall(ln)]
             if hits:
                 self.add("color-hardcode", "med", rel, hits[0],
                          f"{len(hits)} color literal(s) -> color role token (primary/surface/muted/semantic)")

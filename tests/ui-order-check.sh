@@ -76,6 +76,24 @@ cat >"$P/src/ThemeToggle.tsx" <<'EOF'
 import Sun from "~icons/lucide/sun";
 export const T = () => <span style={{ color: "#ff0000" }} />;
 EOF
+# issue #21: issue refs in comments / URLs are not colors; real literals still count (3 here)
+cat >"$P/src/Refs.tsx" <<'EOF'
+// fixed in #165
+/* multi-line
+   block (#330) */
+const link = "http://x.y/#123"; // #417
+export const R = () => <div style={{ color: "#ff0000" }}>{/* #226 */}<b style={{ background: "rgb(1,2,3)" }} /></div>;
+EOF
+cat >"$P/src/refs.css" <<'EOF'
+/* see #165 */
+.a { color: #fff; }
+EOF
+cat >"$P/src/Only.tsx" <<'EOF'
+// #165 #226
+/* #417
+   #330 */
+export const O = () => <p>{/* #226 */}x</p>;
+EOF
 cat >"$P/src/List.tsx" <<'EOF'
 import { useQuery } from "@tanstack/react-query";
 export function List() {
@@ -131,6 +149,9 @@ hasnt 'color-hardcode|med|src/Good.tsx'
 hasnt 'color-hardcode|med|src/theme.ts'
 has 'color-hardcode|med|src/ThemeToggle.tsx:2|1 color literal(s)'
 hasnt 'color-hardcode|med|src/styles.css'
+has 'color-hardcode|med|src/Refs.tsx:5|2 color literal(s)'
+has 'color-hardcode|med|src/refs.css:2|1 color literal(s)'
+hasnt 'color-hardcode|med|src/Only.tsx'
 
 # --- 3. a11y --------------------------------------------------------------------
 has 'a11y-icon-button|high|src/Bad.tsx:5|'
@@ -163,7 +184,7 @@ has 'order-block|info|CLAUDE.md:3|present, 2 (기본값)'
 
 # --- exclusions ----------------------------------------------------------------------
 for x in "|node_modules/" "|dist/" "vendor.min.js" "Bad.test.tsx"; do hasnt "$x"; done
-tail -n1 "$WORK/out" | grep -qE '^\[OK\] spec-flow:ui-order check target=.* files=6 findings=[0-9]+ high=[0-9]+ med=[0-9]+ low=[0-9]+$' \
+tail -n1 "$WORK/out" | grep -qE '^\[OK\] spec-flow:ui-order check target=.* files=9 findings=[0-9]+ high=[0-9]+ med=[0-9]+ low=[0-9]+$' \
     || fail "summary line: $(tail -n1 "$WORK/out")"
 
 # --- clean project: Lucide dep, confirmed block, no findings ---------------------------

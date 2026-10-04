@@ -41,7 +41,7 @@ CHECK_ID|severity|file:line|detail
 | `a11y-img-alt` | med | `<img>` without `alt` |
 | `token-spacing` | med / low | Tailwind arbitrary spacing (`p-[13px]`) or CSS padding/margin/gap px: not a multiple of 4 = med, of 8 = low |
 | `token-radius` | med / info | 4+ distinct radius values = med; otherwise the inventory as info |
-| `color-hardcode` | med | Per-file count of `#hex` / `rgb()` / `hsl()` literals outside theme/token files and custom-property definitions |
+| `color-hardcode` | med | Per-file count of `#hex` / `rgb()` / `hsl()` literals outside theme/token files, custom-property definitions and comments; a digits-only `#123` counts only as a whole quoted string or a color property value (else it is an issue ref) |
 | `breakpoints` | med / info | 3+ media widths beyond the block's `[반응형]` set (default 640/1024) |
 | `order-unconfirmed` | med | No ui-order block, malformed markers, or `[화면]` still the `<...>` placeholder |
 | `data-view-candidate` | info | File with a data signal (fetch, axios, useQuery, useSWR, load, async component) plus the state hints seen |
