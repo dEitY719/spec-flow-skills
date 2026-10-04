@@ -24,6 +24,7 @@ with setup_claude_md.py. Self-check: tests/ui-order-check.sh.
 import argparse
 import os
 import re
+import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -202,7 +203,7 @@ class Scan:
                 emo = sorted({f"U+{ord(c):04X}" for c in ln if is_emoji(c)})
                 if emo:
                     self.uses_icons = True
-                    self.add("icon-emoji", "med", rel, n,
+                    self.add("icon-emoji", "high", rel, n,
                              " ".join(emo) + " -> use a Lucide icon instead of emoji")
         if "<svg" in text:
             self.uses_icons = True
@@ -285,6 +286,21 @@ def order_block(root, scan):
     return chosen
 
 
+def candidate_files(root):
+    """Sorted project-relative paths. In a git repo: tracked + untracked, minus
+    .gitignore'd (generated trees like graphify-out/ are not UI). Else a walk."""
+    try:
+        out = subprocess.run(["git", "-C", root, "ls-files", "-co", "--exclude-standard", "-z"],
+                             capture_output=True, check=True).stdout.decode("utf-8", "replace")
+        rels = [p for p in out.split("\0") if p and os.path.isfile(os.path.join(root, p))]
+    except (OSError, subprocess.CalledProcessError):
+        rels = []
+        for d, dirs, files in os.walk(root):
+            dirs[:] = [x for x in dirs if x not in SKIP_DIRS]
+            rels += [os.path.relpath(os.path.join(d, n), root).replace(os.sep, "/") for n in files]
+    return sorted(p for p in rels if not SKIP_DIRS.intersection(p.split("/")[:-1]))
+
+
 def main():
     ap = argparse.ArgumentParser(prog="check_frontend.py")
     ap.add_argument("--project")
@@ -296,23 +312,21 @@ def main():
 
     scan, nfiles = Scan(), 0
     try:
-        for d, dirs, files in os.walk(root):
-            dirs[:] = sorted(x for x in dirs if x not in SKIP_DIRS)
-            for name in sorted(files):
-                if not name.endswith(EXTS) or ".min." in name or TEST_RE.search(name):
-                    continue
-                path = os.path.join(d, name)
-                with open(path, encoding="utf-8", errors="replace") as f:
-                    text = f.read()
-                nfiles += 1
-                scan.file(os.path.relpath(path, root).replace(os.sep, "/"), text)
+        for rel in candidate_files(root):
+            name = os.path.basename(rel)
+            if not name.endswith(EXTS) or ".min." in name or TEST_RE.search(name):
+                continue
+            with open(os.path.join(root, rel), encoding="utf-8", errors="replace") as f:
+                text = f.read()
+            nfiles += 1
+            scan.file(rel, text)
         chosen = order_block(root, scan)
     except OSError as e:
         print(f"[FAIL] spec-flow:ui-order check: {e}", file=sys.stderr)
         sys.exit(1)
     scan.finish(chosen)
     if scan.uses_icons and not setup.detect(root)["lucide"]:
-        scan.add("icon-set", "low", "package.json", 0,
+        scan.add("icon-set", "high", "package.json", 0,
                  "icons used but no Lucide dependency -> add lucide-react (or lucide-vue-next / lucide-svelte)")
 
     counts = {"high": 0, "med": 0, "low": 0}
