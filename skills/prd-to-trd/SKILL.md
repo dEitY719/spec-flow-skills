@@ -77,8 +77,8 @@ python3 "$_s" render --rows "<plan-out>.rows.json" --template "<template>" \
 ```
 
 Edit a row's `"title"` between the two commands when the slug default is
-wrong (`ci-gate` -> `CI Gate`). Exit codes, `written=`/`skipped=` output and
-the no-rollback rule: `references/constraints.md` → "Helper behavior".
+wrong (`ci-gate` -> `CI Gate`). Exit codes and `written=`/`skipped=` output:
+`references/constraints.md` → "Helper behavior"; no-rollback: "Mid-flow failure".
 
 ## Step 5: Report
 
