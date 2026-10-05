@@ -47,6 +47,8 @@ metadata:
 
 ## Procedure
 
+Stop on error: an unreadable project or a failed helper → `[FAIL] spec-flow:ui-order: <reason>`; never start implementation.
+
 **Step 1: Identify targets** — name the screen type (대시보드, 목록-상세, 설정, 랜딩,
 로그인, ...) and the components in the request (버튼, 폼 입력, 오버레이, 목록, ...).
 Vague words map to precise terms via the translation table in
@@ -95,5 +97,4 @@ must carry all three, asked or defaulted — AI builds only the happy path other
 | `references/check.md` | `--check` only |
 | `references/help.md` | `help` argument only |
 
-Source vocabulary: "바이브 코더를 위한 UI/UX 용어 사전" (geniuskey),
-https://geniuskey.github.io/vibe-coding/ui-ux/ — references are paraphrased, not copied.
+Source vocabulary: "바이브 코더를 위한 UI/UX 용어 사전" (geniuskey), https://geniuskey.github.io/vibe-coding/ui-ux/ — references are paraphrased, not copied.

@@ -40,6 +40,18 @@ agent-toolbox.
   re-parseable by `--apply` without re-reading the PRD. See
   `references/plan-format.md` for the round-trip invariants.
 
+## Helper behavior (`--apply`, Step 4)
+
+- `parse` enforces `references/plan-format.md`'s round-trip invariants
+  and exits 1 naming the offending line; a missing plan is `[FAIL] plan
+  not found at <path> — run --dry-run first`.
+- `render` substitutes the `{{...}}` placeholders of
+  `references/template-fallback.md`, skips an existing scaffold unless
+  `--force`, creates `<prd-dir>/trd/` and nothing above it, and prints
+  `written=<n> skipped=<n>`.
+- A mid-flow write failure reports the slugs written so far, then
+  `[FAIL]` + exit 1 — **no auto-rollback** (see below).
+
 ## Mid-flow failure
 
 - On `--apply` write failure, report the partial state (slugs

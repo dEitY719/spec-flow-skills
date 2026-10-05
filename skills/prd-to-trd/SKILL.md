@@ -62,27 +62,23 @@ Run with --apply to write TRD scaffolds.
 
 ## Step 4: Apply (only if `--apply`)
 
-Resolve the bundled helper via `$CLAUDE_PLUGIN_ROOT` — the **plugin
-root** (the directory holding `skills/`), not this file's own directory.
-Unset for a symlinked personal skill: export `CLAUDE_PLUGIN_ROOT=$(readlink -f
-"<Base directory>/../..")` (never `$PWD`). Still unset → stop; never guess.
+Resolve the bundled helper from the **plugin root** (the directory holding
+`skills/`), never `$PWD`. A symlinked personal skill exports `CLAUDE_PLUGIN_ROOT=$(readlink -f "<Base directory>/../..")` first.
 
-```bash
-LIB="$CLAUDE_PLUGIN_ROOT/skills/prd-to-trd/lib/plan.py"
-python3 "$LIB" parse "<plan-out>" > "<plan-out>.rows.json"
-python3 "$LIB" render --rows "<plan-out>.rows.json" --template "<template>" \
+```sh
+_s=""
+if [ -n "${HERMES_SKILL_DIR:-}" ]; then _s="${HERMES_SKILL_DIR}/lib/plan.py"
+elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then _s="$CLAUDE_PLUGIN_ROOT/skills/prd-to-trd/lib/plan.py"
+fi
+[ -n "$_s" ] && [ -f "$_s" ] || { printf '[FAIL] plugin root unresolved (tried: %s) — export HERMES_SKILL_DIR=<this skill dir> or CLAUDE_PLUGIN_ROOT=<plugin dir>\n' "${_s:-nothing}" >&2; exit 1; }
+python3 "$_s" parse "<plan-out>" > "<plan-out>.rows.json"
+python3 "$_s" render --rows "<plan-out>.rows.json" --template "<template>" \
     --out-dir "<prd-dir>/trd" --prd "<prd-path>" [--force]
 ```
 
-`parse` enforces `references/plan-format.md`'s round-trip invariants and
-exits 1 naming the offending line; a missing plan is `[FAIL] plan not
-found at <path> — run --dry-run first`. `render` substitutes the
-`{{...}}` placeholders of `references/template-fallback.md`, skips an
-existing scaffold unless `--force`, creates `<prd-dir>/trd/` and nothing
-above it, and prints `written=<n> skipped=<n>`. Edit a row's `"title"`
-between the two commands when the slug-derived default is wrong
-(`ci-gate` -> `CI Gate`). A mid-flow write failure reports the slugs
-written so far, then `[FAIL]` + exit 1 — **no auto-rollback.**
+Edit a row's `"title"` between the two commands when the slug default is
+wrong (`ci-gate` -> `CI Gate`). Exit codes, `written=`/`skipped=` output and
+the no-rollback rule: `references/constraints.md` → "Helper behavior".
 
 ## Step 5: Report
 
