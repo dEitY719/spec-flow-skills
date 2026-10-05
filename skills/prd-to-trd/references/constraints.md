@@ -49,15 +49,13 @@ agent-toolbox.
   `references/template-fallback.md`, skips an existing scaffold unless
   `--force`, creates `<prd-dir>/trd/` and nothing above it, and prints
   `written=<n> skipped=<n>`.
-- A mid-flow write failure reports the slugs written so far, then
-  `[FAIL]` + exit 1 — **no auto-rollback** (see below).
 
 ## Mid-flow failure
 
 - On `--apply` write failure, report the partial state (slugs
-  written, slugs skipped, slug that failed) and stop. **No automatic
-  rollback** — written scaffolds remain on disk; the user decides
-  whether to delete or keep.
+  written, slugs skipped, slug that failed), then `[FAIL]` + exit 1.
+  **No automatic rollback** — written scaffolds remain on disk; the
+  user decides whether to delete or keep.
 - Template load failure with both `<prd-dir>/trd/_template.md` and
   `references/template-fallback.md` missing is unrecoverable — exit
   with `[FAIL] template unavailable`.
