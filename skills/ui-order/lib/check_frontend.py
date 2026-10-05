@@ -62,7 +62,7 @@ TW_RADIUS_RE = re.compile(r"""(?<![\w:-])(rounded(?:-(?:tl|tr|br|bl|ss|se|es|ee|
 CSS_RADIUS_RE = re.compile(r"\bborder(?:-[a-z]+)*-?radius\s*:\s*([^;}\n,]+)", re.I)
 HEX_RE = re.compile(r"(?<![\w&])#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})\b")
 FUNC_COLOR_RE = re.compile(r"\b(?:rgba?|hsla?)\((?!\s*var\()")
-# Strings are matched (and kept) first so "http://x" is not a comment; comments become newlines.
+# Strings are matched (and kept) first so a URL with // inside a string is not a comment; comments become newlines.
 # ponytail: regex-literal / JSX-text quirks are ignored; a real tokenizer if they ever matter.
 CODE_RE = re.compile(r"""("(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`(?:\\.|[^`\\])*`)|//[^\n]*|/\*.*?\*/|<!--.*?-->""", re.S)
 # #123 is an issue ref unless it is a whole quoted string or a color property value.

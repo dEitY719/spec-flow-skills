@@ -60,17 +60,24 @@ per `references/document-template.md`.
 
 ## Step 4: Sync AGENTS.md
 
-Apply the three-way branch (missing / has `@CLAUDE.md` / missing
-`@CLAUDE.md`) in `references/agents-md-handling.md`.
+Run the bundled helper on the target repo root and quote its one output
+line verbatim in Step 5 (contract: `references/agents-md-handling.md`;
+never `$PWD` for the plugin root).
+
+```sh
+_s=""
+if [ -n "${HERMES_SKILL_DIR:-}" ]; then _s="${HERMES_SKILL_DIR}/lib/sync-agents-md.sh"
+elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then _s="$CLAUDE_PLUGIN_ROOT/skills/claude-to-codex/lib/sync-agents-md.sh"
+fi
+[ -n "$_s" ] && [ -f "$_s" ] || { printf '[FAIL] plugin root unresolved (tried: %s) — export HERMES_SKILL_DIR=<this skill dir> or CLAUDE_PLUGIN_ROOT=<plugin dir>\n' "${_s:-nothing}" >&2; exit 1; }
+sh "$_s" "<repo-root>"
+```
 
 ## Quality bar
 
-- Codex can execute from the generated document alone, without the
-  original long phase spec open at all times.
-- Implementation scope and the file list are unambiguous; mixed
-  responsibilities are separated only when it genuinely helps reliability.
-- Output stays faithful to the original Claude-authored intent — these are
-  practical implementation documents, not summaries.
+- Codex can execute from the generated document alone, without the phase spec open.
+- Scope and file list are unambiguous; split mixed responsibilities only for reliability.
+- Faithful to the original Claude-authored intent — implementation documents, not summaries.
 
 ## Step 5: Report
 
@@ -80,7 +87,7 @@ Print a concise verdict, then keep any remaining chat response short:
 [OK] spec-flow:claude-to-codex — <n> Codex document(s) written
   docs/ai/phases/codex/<base>-codex-01.md (single|slice 1/<n>)
   ...
-  AGENTS.md: created | updated (@CLAUDE.md added) | unchanged
+  AGENTS.md: created | updated | unchanged
 ```
 
 On failure, print instead and stop:
